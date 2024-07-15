@@ -75,7 +75,7 @@ const MessageList = () => {
             <div className='flex gap-3 items-center'>
               {message.senderId == selectedUser?.id && (
                 <Avatar className='flex justify-center items-center'>
-                  <AvatarImage src={selectedUser?.image} alt="user_image" className='border-1 border-gray-400 rounded-full w-10 h-10 object-cover' />
+                  <AvatarImage src={selectedUser?.image} alt="user_image" className=' rounded-full w-10 h-10 object-cover' />
                 </Avatar>
               )}
               {
@@ -83,7 +83,7 @@ const MessageList = () => {
                   <span className={'bg-accent p-3 rounded-full max-w-25 '+(inria2.className) }>
                     {message.content}
                   </span>
-                ) : (<img src={message.content} alt='message_image' className='border p-2 rounded-lg h-40 md:h-52 object-cover' />)
+                ) : (<img src={message.content} alt='message_image' className='rounded-lg h-40 md:h-52 object-cover' />)
               }
 
               {message.senderId == currentUser?.id && (
