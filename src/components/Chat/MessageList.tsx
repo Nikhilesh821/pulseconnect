@@ -10,7 +10,18 @@ import { getMessageAction } from '@/actions/message.actions'
 import MessageSkeleton from '../skeletons/MessageSkeleton'
 import { CldVideoPlayer } from 'next-cloudinary'
 import 'next-cloudinary/dist/cld-video-player.css';
-import {getReadableTime} from "@/lib/dateTime"
+import { getReadableTime } from "@/lib/dateTime"
+import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import Image from 'next/image'
 const inria2 = Inria_Serif({
   display: 'swap',
   subsets: ['latin'],
@@ -45,7 +56,8 @@ const MessageList = () => {
       })
     }
   }, [messages])
-  console.log(messages)
+
+
   return (
     <div ref={messageContainerRef} className='w-full overflow-y-auto overflow-x-hidden h-full flex flex-col'>
       {/* This component ensures that an animation is applied when items are added to or removed from the list */}
@@ -84,30 +96,30 @@ const MessageList = () => {
               {
                 message.messageType === "text" ? (
                   <>
-                  <div className='flex flex-col gap-1 mt-2 items-end'>
-                  <span className={'bg-accent p-3 rounded-lg max-w-25 ' + (inria2.className)}>
-                    {message.content}
-                  </span>
-                  <p className='text-muted-foreground'>{getReadableTime(message.timeStamp)}</p>
-                  </div>
-                  
+                    <div className='flex flex-col gap-1 mt-2 items-end'>
+                      <span className={'bg-accent p-3 rounded-lg max-w-25 ' + (inria2.className)}>
+                        {message.content}
+                      </span>
+                      <p className='text-muted-foreground'>{getReadableTime(message.timeStamp)}</p>
+                    </div>
+
                   </>
-                  
+
                 ) : message.messageType === "image" ? (
                   (<div className='flex flex-col items-end gap-1'>
-                    <img src={message.content} alt='message_image' className='rounded-lg h-40 md:h-52 object-cover' />
+                    <img  src={message.content} alt='message_image' className='rounded-lg h-40 md:h-52 object-cover cursor-pointer' />
                     <p className='text-muted-foreground'>{getReadableTime(message.timeStamp)}</p>
-                    </div>)
+                  </div>)
                 ) : message.messageType === "video" ? (
-                <div className='w-52 h-40 gap-1 flex flex-col items-end mt-5 rounded-lg'>
-                  <CldVideoPlayer
+                  <div className='w-52 h-40 gap-1 flex flex-col items-end mt-5 rounded-lg'>
+                    <CldVideoPlayer
                       width="52"
                       height="40"
                       className='rounded-lg h-40 w-52'
                       src={message.content}
-                  />
-                  <p className='text-muted-foreground'>{getReadableTime(message.timeStamp)}</p>
-              </div>
+                    />
+                    <p className='text-muted-foreground'>{getReadableTime(message.timeStamp)}</p>
+                  </div>
                 ) : ""
               }
 
