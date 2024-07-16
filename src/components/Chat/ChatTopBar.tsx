@@ -1,8 +1,6 @@
-import { USERS } from '@/db/dummy'
 import { useSelectedUser } from '@/store/useSelectedUser'
 import { Avatar, AvatarImage } from '@radix-ui/react-avatar'
 import { InfoIcon, X } from 'lucide-react'
-import { Inria_Sans } from 'next/font/google'
 import React from 'react'
 import useSound from 'use-sound'
 
