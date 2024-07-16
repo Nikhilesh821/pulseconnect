@@ -7,7 +7,7 @@ import { pusherServer } from "@/lib/pusher"
 
 interface SendMessageArgs {
     content: string,
-    messageType: "text" | "image",
+    messageType: "text" | "image" |"video",
     receiverId: string
 }
 export async function sendMessageAction({ content, messageType, receiverId }: SendMessageArgs) {
@@ -19,6 +19,8 @@ export async function sendMessageAction({ content, messageType, receiverId }: Se
             message: "User not authenticated"
         }
     }
+    console.log(content)
+    console.log(messageType)
 
     const senderId = user.id
     const conversationId = `conversation:${[senderId, receiverId].sort().join(":")}`
@@ -61,5 +63,6 @@ export async function getMessageAction(selectedUserId: string, currentUserId: St
     messageIds.forEach((messageId) => pipeline.hgetall(messageId as string))
     const messages = await pipeline.exec() as Message[]
     return messages
+    
 
 }

@@ -1,6 +1,6 @@
 export interface Message{
 	senderId: string;
 	content: string;
-	messageType: "text" | "image";
+	messageType: "text" | "image"| "video";
 	timeStamp: Date;
 }

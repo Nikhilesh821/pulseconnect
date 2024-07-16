@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from "framer-motion"
-import { Image as ImageIcon, Loader, SendHorizonalIcon, ThumbsUpIcon } from 'lucide-react'
+import { Image as ImageIcon, Loader, SendHorizonalIcon, ThumbsUpIcon, Video } from 'lucide-react'
 import { Textarea } from '../ui/textarea'
 import { Inria_Sans, Inria_Serif } from 'next/font/google'
 import EmojiPicker from './EmojiPicker'
@@ -17,7 +17,8 @@ import { queryClient } from '../Providers/TanStackProvider'
 import { useKindeBrowserClient } from '@kinde-oss/kinde-auth-nextjs'
 import { pusherClient } from "@/lib/pusher"
 import { Message } from '@/types/message'
-
+import { CldVideoPlayer } from 'next-cloudinary';
+import 'next-cloudinary/dist/cld-video-player.css';
 
 
 const inria2 = Inria_Serif({
@@ -43,6 +44,8 @@ const ChatBottomBar = () => {
   const { soundEnabled } = usePreferences()
   const { selectedUser } = useSelectedUser()
   const [imageUrl, setImageUrl] = useState("")
+  const [videoUrl, setVideoUrl] = useState("")
+  const [display,setDisplay]=useState(true)
   const playRandomKeyStroke = () => {
     const randomIndex = Math.floor(Math.random() * playSoundFunctions.length)
     soundEnabled && playSoundFunctions[randomIndex]()
@@ -115,6 +118,20 @@ const ChatBottomBar = () => {
             }}
           </CldUploadWidget>
         )}
+        {!message.trim() && (
+          <CldUploadWidget
+            onSuccess={(result, { widget }) => {
+              setVideoUrl((result.info as CloudinaryUploadWidgetInfo).secure_url)
+              widget.close()
+            }}
+            signatureEndpoint="/api/sign-cloudinary-params">
+            {({ open }) => {
+              return (
+                <Video onClick={() => open()} size={24} className='cursor-pointer text-muted-foreground' />
+              );
+            }}
+          </CldUploadWidget>
+        )}
 
 
         <AnimatePresence>
@@ -163,13 +180,14 @@ const ChatBottomBar = () => {
         </AnimatePresence>
 
       </div>
-      <Dialog open={!!imageUrl}>
+      <Dialog open={!!imageUrl && videoUrl === ""}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle className={inria.className}>Image Preview</DialogTitle>
           </DialogHeader>
           <div className='flex justify-center items-center rounded-lg relative h-96 w-full mx-auto'>
-            <Image src={imageUrl} alt='Image Preview' fill className='object-contain rounded-lg' />
+            (<Image src={imageUrl} alt='Image Preview' fill className='object-contain rounded-lg' />
+            )
           </div>
 
           <DialogFooter>
@@ -185,6 +203,31 @@ const ChatBottomBar = () => {
             </Button>
           </DialogFooter>
         </DialogContent>
+
+      </Dialog>
+      <Dialog open={!!videoUrl && imageUrl === "" && display}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className={inria.className}>Video Preview</DialogTitle>
+          </DialogHeader>
+          <div className='flex justify-center items-center rounded-lg relative h-96 w-full mx-auto'>
+          <CldVideoPlayer className='rounded-lg' width={150} height={96} src={videoUrl} />
+          </div>
+
+          <DialogFooter>
+            <Button
+              className={"w-full rounded-full md:text-lg font-semibold " + (inria.className)}
+              type='submit'
+              onClick={() => {
+                sendMessage({ content: videoUrl, messageType: "video", receiverId: selectedUser?.id! });
+                setDisplay(false)
+              }}
+            >
+              Send
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+
       </Dialog>
     </>
   )
