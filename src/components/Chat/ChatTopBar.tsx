@@ -4,7 +4,6 @@ import { Avatar, AvatarImage } from '@radix-ui/react-avatar'
 import { InfoIcon, X } from 'lucide-react'
 import React from 'react'
 import useSound from 'use-sound'
-import { AudioRecorder } from 'react-audio-voice-recorder';
 
 
 
@@ -29,16 +28,6 @@ const ChatTopBar = () => {
         </span>
       </div>
       <div className='flex gap-2 items-center'>
-        <AudioRecorder
-          onRecordingComplete={addAudioElement}
-          audioTrackConstraints={{
-            noiseSuppression: true,
-            echoCancellation: true,
-          }}
-          downloadOnSavePress={true}
-          downloadFileExtension="webm"
-        />
-        
         <X onClick={() => {
           setSelectedUser(null)
           playSound()
