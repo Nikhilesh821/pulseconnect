@@ -1,4 +1,3 @@
-import { SoundRecorder } from '@/lib/audioRecorder'
 import { useSelectedUser } from '@/store/useSelectedUser'
 import { Avatar, AvatarImage } from '@radix-ui/react-avatar'
 import { InfoIcon, X } from 'lucide-react'
