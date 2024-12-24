@@ -3,6 +3,7 @@ import { Inria_Sans, Inria_Serif } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/Providers/theme-provider"
 import TanStackProvider from "@/components/Providers/TanStackProvider";
+import { AudioRecorder } from 'react-audio-voice-recorder';
 
 const inria2 = Inria_Sans({
   display: 'swap',
@@ -18,6 +19,7 @@ export const metadata: Metadata = {
   title: "Chatie",
   description: "Chat Application",
 };
+
 
 export default function RootLayout({
   children,
