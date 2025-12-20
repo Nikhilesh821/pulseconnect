@@ -124,7 +124,6 @@ const ChatBottomBar = () => {
 
     return () => {
       socket.off("newMessage", handleNewMessage);
-      socket.disconnect();
     }
 
   }, [currentUser?.id, selectedUser?.id, queryClient, playNotificationSound, soundEnabled])

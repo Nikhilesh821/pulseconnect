@@ -24,6 +24,18 @@ io.on('connection', (socket) => {
         console.log(`User ${socket.id} joined room: ${room}`);
     });
 
+    // For WebRTC: Let user join a room named after their userId so others can signal to them
+    socket.on('join-self', (userId) => {
+        socket.join(userId);
+        console.log(`User ${socket.id} is now reachable at userId room: ${userId}`);
+    });
+
+    // Forwarding WebRTC signaling data
+    socket.on('signal', ({ to, from, signal, type }) => {
+        console.log(`Forwarding ${type} from ${from} to ${to}`);
+        io.to(to).emit('signal', { from, signal, type });
+    });
+
     socket.on('disconnect', () => {
         console.log('User disconnected:', socket.id);
     });

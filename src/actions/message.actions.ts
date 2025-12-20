@@ -54,7 +54,6 @@ export async function sendMessageAction({ content, messageType, receiverId }: Se
 
     // Broadcast via Node.js WebSocket server
     const broadcastUrl = `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/broadcast`;
-    console.log("Attempting broadcast to:", broadcastUrl);
 
     fetch(broadcastUrl, {
         method: 'POST',
@@ -64,18 +63,12 @@ export async function sendMessageAction({ content, messageType, receiverId }: Se
             event: "newMessage",
             data: { message: { senderId, content, timeStamp, messageType } }
         })
-    }).then(async (res) => {
-        if (res.ok) {
-            console.log("Broadcast request succeeded");
-        } else {
-            const errorText = await res.text();
-            console.error(`Broadcast request failed with status ${res.status}:`, errorText);
-        }
     }).catch(err => console.error("Broadcast fetch error:", err));
 
     return { success: true, conversationId, messageId }
 }
 
+// fetches the conversation from redis
 export async function getMessageAction(selectedUserId: string, currentUserId: String) {
     const conversationId = `conversation:${[selectedUserId, currentUserId].sort().join(":")}`
     const messageIds = await redis.zrange(`${conversationId}:messages`, 0, -1)
