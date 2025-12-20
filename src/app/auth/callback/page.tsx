@@ -1,8 +1,8 @@
 "use client"
-import React, { useEffect } from 'react'
+import { useEffect } from 'react'
 import { checkAuthStatus } from '@/actions/auth.actions'
 import { useQuery } from '@tanstack/react-query'
-import { LoaderPinwheel, Router } from 'lucide-react'
+import { LoaderPinwheel } from 'lucide-react'
 import { Inria_Sans, Inria_Serif } from 'next/font/google'
 import { useRouter } from 'next/navigation'
 

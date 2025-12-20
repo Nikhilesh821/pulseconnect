@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react'
 import { AnimatePresence, motion } from "framer-motion"
 import { cn } from '@/lib/utils'
-import { Avatar, AvatarImage } from '@radix-ui/react-avatar'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Inria_Serif } from 'next/font/google'
 import { useSelectedUser } from '@/store/useSelectedUser'
 import { useKindeBrowserClient } from '@kinde-oss/kinde-auth-nextjs'
@@ -11,17 +11,7 @@ import MessageSkeleton from '../skeletons/MessageSkeleton'
 import { CldVideoPlayer } from 'next-cloudinary'
 import 'next-cloudinary/dist/cld-video-player.css';
 import { getReadableTime } from "@/lib/dateTime"
-import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import Image from 'next/image'
+
 const inria2 = Inria_Serif({
   display: 'swap',
   subsets: ['latin'],
@@ -85,50 +75,45 @@ const MessageList = () => {
 
             }}
 
-            className={cn("flex flex-col gap-2 p-4 whitespace-pre-wrap", message.senderId === currentUser?.id ? "items-end" : "items-start")}
+            className={cn("flex flex-col gap-2 p-4", message.senderId === currentUser?.id ? "items-end" : "items-start")}
           >
-            <div className='flex gap-3 items-center'>
-              {message.senderId == selectedUser?.id && (
-                <Avatar className='flex justify-center items-center'>
-                  <AvatarImage src={selectedUser?.image} alt="user_image" className=' rounded-full w-10 h-10 object-cover' />
+            <div className={cn("flex flex-col gap-1 max-w-[90%] md:max-w-[80%]", message.senderId === currentUser?.id ? "items-end" : "items-start")}>
+              <div className={cn("flex gap-3 items-end", message.senderId === currentUser?.id ? "flex-row-reverse" : "flex-row")}>
+                {/* Avatar (always first in JSX, position handled by flex-direction) */}
+                <Avatar className='flex justify-center items-center mb-5 h-10 w-10 shrink-0'>
+                  <AvatarImage
+                    src={message.senderId === currentUser?.id ? (currentUser?.picture || "") : (selectedUser?.image || "")}
+                    alt="avatar"
+                    className='rounded-full object-cover'
+                  />
+                  <AvatarFallback>
+                    {message.senderId === currentUser?.id ? (currentUser?.given_name?.[0] || "M") : (selectedUser?.name?.[0] || "U")}
+                  </AvatarFallback>
                 </Avatar>
-              )}
-              {
-                message.messageType === "text" ? (
-                  <>
-                    <div className='flex flex-col gap-1 mt-2 items-end'>
-                      <span className={'bg-accent p-3 rounded-lg max-w-25 ' + (inria2.className)}>
-                        {message.content}
-                      </span>
-                      <p className='text-muted-foreground'>{getReadableTime(message.timeStamp)}</p>
-                    </div>
 
-                  </>
-
+                {message.messageType === "text" ? (
+                  <span className={cn('bg-accent p-3 rounded-2xl shadow-sm whitespace-pre-wrap wrap-break-word font-medium mb-5', inria2.className)}>
+                    {message.content}
+                  </span>
                 ) : message.messageType === "image" ? (
-                  <div className='flex flex-col items-end gap-1'>
-                    <img src={message.content} alt='message_image' className='rounded-lg h-40 md:h-52 object-cover cursor-pointer' />
-                    <p className='text-muted-foreground'>{getReadableTime(message.timeStamp)}</p>
-                  </div>
+                  <img src={message.content} alt='message_image' className='rounded-2xl h-40 md:h-52 object-contain cursor-pointer bg-accent/50 max-w-full shadow-sm mb-5' />
                 ) : message.messageType === "video" ? (
-                  <div className='w-52 h-40 gap-1 flex flex-col items-end mt-5 rounded-lg'>
+                  <div className='w-full max-w-[280px] md:max-w-xs rounded-2xl overflow-hidden shadow-sm mb-5'>
                     <CldVideoPlayer
-                      width="52"
-                      height="40"
-                      className='rounded-lg h-40 w-52'
+                      width="400"
+                      height="300"
+                      className='h-full w-full'
                       src={message.content}
                     />
-                    <p className='text-muted-foreground'>{getReadableTime(message.timeStamp)}</p>
                   </div>
-                ) : null
-              }
+                ) : null}
+              </div>
 
-              {message.senderId == currentUser?.id && (
-                <Avatar className='flex justify-center items-center'>
-                  <AvatarImage src={currentUser?.picture!} alt="user_image" className='border border-gray-400 rounded-full w-10 h-10 object-cover' />
-                </Avatar>
-              )}
 
+              {/* Timestamp outside the avatar-bubble row */}
+              <p className={cn('text-muted-foreground text-[10px] mt-[-18px]', message.senderId === currentUser?.id ? "mr-12" : "ml-12")}>
+                {getReadableTime(message.timeStamp)}
+              </p>
             </div>
           </motion.div>
         ))}

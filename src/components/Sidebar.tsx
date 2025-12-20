@@ -1,5 +1,3 @@
-import { Inria_Sans } from 'next/font/google'
-import React from 'react'
 import { ScrollArea } from './ui/scroll-area'
 import { Tooltip, TooltipProvider, TooltipTrigger } from './ui/tooltip'
 import { Avatar, AvatarFallback } from './ui/avatar'
@@ -14,8 +12,7 @@ import { LogoutLink } from '@kinde-oss/kinde-auth-nextjs/components'
 import { User } from '@/types/user'
 import { useSelectedUser } from '@/store/useSelectedUser'
 import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs"
-
-
+import PreferencesTab from './PreferencesTab'
 
 const Sidebar = ({ isCollapsed, users }: { isCollapsed: boolean, users: User[] }) => {
     const { selectedUser, setSelectedUser } = useSelectedUser()
@@ -26,15 +23,21 @@ const Sidebar = ({ isCollapsed, users }: { isCollapsed: boolean, users: User[] }
         user.picture = `https://avatar.iran.liara.run/public/boy?username=${user?.given_name}`
     }
     return (
-        <div className='relative ml-1 flex flex-col gap-4 p-2 h-full data-[collapsed=true]:p-2 max-h-full overflow-auto bg-background'>
+        <div
+            data-collapsed={isCollapsed}
+            className={`${isCollapsed ? "flex flex-col items-center" : ""} group relative ml-1 flex flex-col gap-4 p-2 h-full data-[collapsed=true]:p-2 max-h-full overflow-auto bg-background`}
+        >
             {
                 !isCollapsed && (
-                    <div className='flex justify-between p-2 items-center'>
+
+                    <div className=' mt-2 flex justify-between p-2 items-center'>
                         <div className='flex gap-2 items-center text-2xl'>
                             <p className={'font-medium '}>
                                 Chats
                             </p>
                         </div>
+                        <PreferencesTab />
+
                     </div>
                 )
             }
@@ -86,7 +89,6 @@ const Sidebar = ({ isCollapsed, users }: { isCollapsed: boolean, users: User[] }
 
                                 </span>
                             </div>
-
                         </Button>
                     ))
                 }

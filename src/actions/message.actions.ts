@@ -3,11 +3,11 @@
 import { redis } from "@/lib/db"
 import { Message } from "@/types/message"
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server"
-import { pusherServer } from "@/lib/pusher"
+// pusherServer removed in favor of Node server
 
 interface SendMessageArgs {
     content: string,
-    messageType: "text" | "image" |"video",
+    messageType: "text" | "image" | "video",
     receiverId: string
 }
 export async function sendMessageAction({ content, messageType, receiverId }: SendMessageArgs) {
@@ -19,39 +19,60 @@ export async function sendMessageAction({ content, messageType, receiverId }: Se
             message: "User not authenticated"
         }
     }
-    console.log(content)
-    console.log(messageType)
-
     const senderId = user.id
     const conversationId = `conversation:${[senderId, receiverId].sort().join(":")}`
-    const conversationExist = await redis.exists(conversationId)
-    if (!conversationExist) {
-        await redis.hset(conversationId, {
-            participant1: senderId,
-            participant2: receiverId
-        })
-    }
-
-    await redis.sadd(`user:${senderId}:conversations`, conversationId)
-    await redis.sadd(`user:${receiverId}:conversations`, conversationId)
 
     const messageId = `message:${Date.now()}:${Math.random().toString(36).substring(2, 9)}`
     const timeStamp = Date.now()
 
-    //creating the message hash
-    await redis.hset(messageId, {
+    const pipeline = redis.pipeline()
+
+    // Create conversation if it doesn't exist (using hsetnx or just hset is fine here since it's small)
+    pipeline.hset(conversationId, {
+        participant1: senderId,
+        participant2: receiverId
+    })
+
+    pipeline.sadd(`user:${senderId}:conversations`, conversationId)
+    pipeline.sadd(`user:${receiverId}:conversations`, conversationId)
+
+    // Creating the message hash
+    pipeline.hset(messageId, {
         senderId,
         timeStamp,
         content,
         messageType,
     })
 
-    //add the message into a conversation
-    await redis.zadd(`${conversationId}:messages`, { score: timeStamp, member: JSON.stringify(messageId) }) //sorting based on timestamp
+    // Add the message into a conversation
+    pipeline.zadd(`${conversationId}:messages`, { score: timeStamp, member: JSON.stringify(messageId) })
+
+    // Execute all redis commands in one roundtrip
+    await pipeline.exec()
+
     const channelName = `${senderId}__${receiverId}`.split('__').sort().join('__')
-    await pusherServer?.trigger(channelName, "newMessage", {
-        message: { senderId, content, timeStamp, messageType }
-    })
+
+    // Broadcast via Node.js WebSocket server
+    const broadcastUrl = `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/broadcast`;
+    console.log("Attempting broadcast to:", broadcastUrl);
+
+    fetch(broadcastUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            room: channelName,
+            event: "newMessage",
+            data: { message: { senderId, content, timeStamp, messageType } }
+        })
+    }).then(async (res) => {
+        if (res.ok) {
+            console.log("Broadcast request succeeded");
+        } else {
+            const errorText = await res.text();
+            console.error(`Broadcast request failed with status ${res.status}:`, errorText);
+        }
+    }).catch(err => console.error("Broadcast fetch error:", err));
+
     return { success: true, conversationId, messageId }
 }
 
@@ -63,6 +84,4 @@ export async function getMessageAction(selectedUserId: string, currentUserId: St
     messageIds.forEach((messageId) => pipeline.hgetall(messageId as string))
     const messages = await pipeline.exec() as Message[]
     return messages
-    
-
 }

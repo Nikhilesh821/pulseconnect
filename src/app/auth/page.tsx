@@ -1,17 +1,11 @@
-import { Inria_Sans, Inria_Serif } from 'next/font/google'
+import { Inria_Serif } from 'next/font/google'
 import Image from 'next/image'
-import React from 'react'
 import AuthButtons from './AuthButtons'
 import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server'
 import { redirect } from 'next/navigation'
 
 
 const inria = Inria_Serif({
-    display: 'swap',
-    subsets: ['latin'],
-    weight: ["300", "400", "700"]
-})
-const inria2 = Inria_Sans({
     display: 'swap',
     subsets: ['latin'],
     weight: ["300", "400", "700"]

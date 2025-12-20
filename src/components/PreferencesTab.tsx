@@ -1,5 +1,4 @@
 "use client"
-import React from 'react'
 import { Button } from './ui/button'
 import { MoonIcon, SunIcon, Volume2, VolumeX } from "lucide-react"
 import { useTheme } from 'next-themes'
@@ -14,7 +13,7 @@ const PreferencesTab = () => {
     const [playSoundOff] = useSound("/sounds/sound-off.mp3", { volume: 0.5 })
 
     return (
-        <div className='flex flex-wrap px-1 gap-2 md:px-2'>
+        <div className='flex px-1 gap-2 md:px-2'>
             <Button variant={"outline"} size={"icon"}>
                 <SunIcon onClick={() => {
                     soundEnabled && playMouseClick()

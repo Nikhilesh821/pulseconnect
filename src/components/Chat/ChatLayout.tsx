@@ -1,5 +1,5 @@
 "use client"
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '../ui/resizable'
 import { cn } from '@/lib/utils'
 import { Inria_Sans } from 'next/font/google'
@@ -16,7 +16,7 @@ const inria2 = Inria_Sans({
 })
 
 
-const ChatLayout = ({ defaultLayout = [300, 480], users }: { defaultLayout: number[] | undefined, users: User[] }) => {
+const ChatLayout = ({ defaultLayout = [20, 80], users }: { defaultLayout: number[] | undefined, users: User[] }) => {
     const [isMobile, setIsMobile] = useState(false)
     const [collapsed, setCollapsed] = useState(false)
     const { selectedUser } = useSelectedUser()
@@ -34,28 +34,24 @@ const ChatLayout = ({ defaultLayout = [300, 480], users }: { defaultLayout: numb
         <ResizablePanelGroup
             direction='horizontal'
             className='h-full items-stretch bg-background rounded-lg'
-            onLayout={(sizes: number[]) => {
-                document.cookie = `resizable-panel-layout=${JSON.stringify(sizes)}`
-            }}
+
         >
             <ResizablePanel
-                className={cn(collapsed && "min-w-[80px] transition-all duration-300 ease-in-out")}
+                className={cn(collapsed && !isMobile && "min-w-[80px] transition-all duration-300 ease-in-out")}
                 defaultSize={defaultLayout[0]}
-                collapsedSize={8}
+                collapsedSize={isMobile ? 0 : 6}
                 collapsible={true}
-                minSize={isMobile ? 0 : 24}
-                maxSize={isMobile ? 8 : 30}
+                minSize={isMobile ? 0 : 20}
+                maxSize={isMobile ? 20 : 20}
                 onCollapse={() => {
                     setCollapsed(true)
-                    document.cookie = `resizable-panel-collapsed=true`
 
                 }}
                 onExpand={() => {
                     setCollapsed(false)
-                    document.cookie = `resizable-panel-collapsed=false`
                 }}
             >
-                <Sidebar users={users} isCollapsed={collapsed} />
+                <Sidebar users={users} isCollapsed={isMobile || collapsed} />
             </ResizablePanel>
             <ResizableHandle withHandle />
             <ResizablePanel

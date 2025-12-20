@@ -15,7 +15,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 import Image from 'next/image'
 import { queryClient } from '../Providers/TanStackProvider'
 import { useKindeBrowserClient } from '@kinde-oss/kinde-auth-nextjs'
-import { pusherClient } from "@/lib/pusher"
+import { socket } from "@/lib/socket"
 import { Message } from '@/types/message'
 import { CldVideoPlayer } from 'next-cloudinary';
 import 'next-cloudinary/dist/cld-video-player.css';
@@ -52,9 +52,28 @@ const ChatBottomBar = () => {
   }
   const { mutate: sendMessage, isPending } = useMutation({
     mutationFn: sendMessageAction,
-    // onSuccess:()=>{
-    //   queryClient.invalidateQueries({queryKey:["messages"]})
-    // }
+    onMutate: async (newMessage) => {
+      await queryClient.cancelQueries({ queryKey: ['messages', selectedUser?.id] })
+      const previousMessages = queryClient.getQueryData(['messages', selectedUser?.id])
+
+      queryClient.setQueryData(['messages', selectedUser?.id], (old: any) => [
+        ...(old || []),
+        {
+          id: Math.random().toString(),
+          content: newMessage.content,
+          messageType: newMessage.messageType,
+          senderId: currentUser?.id,
+          timeStamp: Date.now(),
+        }
+      ])
+      return { previousMessages }
+    },
+    onError: (err, newMessage, context) => {
+      queryClient.setQueryData(['messages', selectedUser?.id], context?.previousMessages)
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['messages', selectedUser?.id] })
+    }
   })
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -81,23 +100,31 @@ const ChatBottomBar = () => {
   }
 
   useEffect(() => {
+    if (!currentUser?.id || !selectedUser?.id) return;
+
     const channelName = `${currentUser?.id}__${selectedUser?.id}`.split('__').sort().join('__')
-    const channel = pusherClient?.subscribe(channelName)
+
+    // Connect and join room
+    socket.connect();
+    socket.emit('join', channelName);
+
     const handleNewMessage = (data: { message: Message }) => {
-      queryClient.setQueryData(["messages", selectedUser?.id], (oldMessages: Message[]) => {
+      // If the message is from us, we already added it optimistically
+      if (data.message.senderId === currentUser?.id) return;
+
+      queryClient.setQueryData(["messages", selectedUser?.id], (oldMessages: Message[] = []) => {
         return [...oldMessages, data.message];
       });
-      if (soundEnabled && data.message.senderId !== currentUser?.id) {
+      if (soundEnabled) {
         playNotificationSound()
       }
     }
 
+    socket.on("newMessage", handleNewMessage);
 
-    channel.bind("newMessage", handleNewMessage)
-    //this cleanup is necessary otherwise the event listener will be added multiple times which means you'll see the incoming message multiple times
     return () => {
-      channel.unbind("newMessage", handleNewMessage)
-      pusherClient.unsubscribe(channelName)
+      socket.off("newMessage", handleNewMessage);
+      socket.disconnect();
     }
 
   }, [currentUser?.id, selectedUser?.id, queryClient, playNotificationSound, soundEnabled])
@@ -155,7 +182,7 @@ const ChatBottomBar = () => {
             <Textarea onKeyDown={handleKeyDown} ref={inputRef} onChange={(e) => {
               setMessage(e.target.value)
               playRandomKeyStroke()
-            }} value={message} autoComplete='off' placeholder='Type your message here..' rows={1} className={'w-full border rounded-full items-center h-10 py-2 resize-none overflow-hidden bg-background min-h-0 ' + (inria2.className)} />
+            }} value={message} autoComplete='off' placeholder='Type Your Message' rows={1} className={'w-full border rounded-full items-center h-10 py-2 resize-none overflow-hidden bg-background min-h-0 ' + (inria2.className)} />
             <div className="absolute right-2 bottom-2">
               <EmojiPicker onChange={(emoji) => {
                 setMessage(message + emoji)

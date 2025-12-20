@@ -41,16 +41,13 @@ export default async function Home() {
   // const layout = cookies().get("resizable-panel-layout")
   const defaultLayout = undefined
   return (
-    <main className="flex h-screen flex-col justify-center items-center p-4 md:px-24 py-32 gap-4">
-      <PreferencesTab />
-
-
+    <main className="flex h-screen min-h-screen min-w-screen flex-col justify-center items-center p-4 md:px-24 py-32 gap-4">
       <div
         className='absolute top-0 z-[-2] h-screen w-screen dark:bg-[#000000] dark:bg-[radial-gradient(#ffffff33_1px,#00091d_1px)] 
 				dark:bg-size-[20px_20px] bg-[#ffffff] bg-[radial-gradient(#00000033_1px,#ffffff_1px)] bg-size-[20px_20px]'
         aria-hidden='true'
       />
-      <div className="z-10 border rounded-lg max-w-5xl w-full min-h-[85vh] text-sm lg:flex ">
+      <div className="z-10 rounded-lg max-w-5xl w-full min-h-screen text-sm lg:flex min-w-screen">
         <ChatLayout users={users} defaultLayout={defaultLayout} />
       </div>
     </main>
