@@ -45,7 +45,7 @@ const ChatBottomBar = () => {
   const { selectedUser } = useSelectedUser()
   const [imageUrl, setImageUrl] = useState("")
   const [videoUrl, setVideoUrl] = useState("")
-  const [display,setDisplay]=useState(true)
+  const [display, setDisplay] = useState(true)
   const playRandomKeyStroke = () => {
     const randomIndex = Math.floor(Math.random() * playSoundFunctions.length)
     soundEnabled && playSoundFunctions[randomIndex]()
@@ -106,6 +106,7 @@ const ChatBottomBar = () => {
       <div className='p-4 flex justify-between w-full items-center gap-2 '>
         {!message.trim() && (
           <CldUploadWidget
+            key="image-upload"
             onSuccess={(result, { widget }) => {
               setImageUrl((result.info as CloudinaryUploadWidgetInfo).secure_url)
               widget.close()
@@ -120,6 +121,7 @@ const ChatBottomBar = () => {
         )}
         {!message.trim() && (
           <CldUploadWidget
+            key="video-upload"
             onSuccess={(result, { widget }) => {
               setVideoUrl((result.info as CloudinaryUploadWidgetInfo).secure_url)
               widget.close()
@@ -136,6 +138,7 @@ const ChatBottomBar = () => {
 
         <AnimatePresence>
           <motion.div
+            key="chat-input"
             layout
             initial={{ opacity: 0, scale: 1 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -163,11 +166,11 @@ const ChatBottomBar = () => {
             </div>
           </motion.div>
           {message.trim() ? (
-            <Button onClick={handleSendMessage} className='h-9 w-9 dark:bg-muted dark:text-muted dark:hover:bg-muted dark:hover:text-white shrink-0' variant={"ghost"} size={"icon"} >
+            <Button key='send-button' onClick={handleSendMessage} className='h-9 w-9 dark:bg-muted dark:text-muted dark:hover:bg-muted dark:hover:text-white shrink-0' variant={"ghost"} size={"icon"} >
               <SendHorizonalIcon size={20} className='text-muted-foreground' />
             </Button>
           ) : (
-            <Button className='h-9 w-9 dark:bg-muted dark:text-muted dark:hover:bg-muted dark:hover:text-white shrink-0' variant={"ghost"} size={"icon"}>
+            <Button key='thumbs-button' className='h-9 w-9 dark:bg-muted dark:text-muted dark:hover:bg-muted dark:hover:text-white shrink-0' variant={"ghost"} size={"icon"}>
               {!isPending ? <ThumbsUpIcon onClick={() => {
                 sendMessage({
                   content: "👍🏻",
@@ -180,14 +183,13 @@ const ChatBottomBar = () => {
         </AnimatePresence>
 
       </div>
-      <Dialog open={!!imageUrl && videoUrl === ""}>
+      <Dialog key="image-preview" open={!!imageUrl && videoUrl === ""}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle className={inria.className}>Image Preview</DialogTitle>
           </DialogHeader>
           <div className='flex justify-center items-center rounded-lg relative h-96 w-full mx-auto'>
-            (<Image src={imageUrl} alt='Image Preview' fill className='object-contain rounded-lg' />
-            )
+            <Image src={imageUrl} alt='Image Preview' fill className='object-contain rounded-lg' />
           </div>
 
           <DialogFooter>
@@ -205,13 +207,13 @@ const ChatBottomBar = () => {
         </DialogContent>
 
       </Dialog>
-      <Dialog open={!!videoUrl && imageUrl === "" && display}>
+      <Dialog key="video-preview" open={!!videoUrl && imageUrl === "" && display}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle className={inria.className}>Video Preview</DialogTitle>
           </DialogHeader>
           <div className='flex justify-center items-center rounded-lg relative h-96 w-full mx-auto'>
-          <CldVideoPlayer className='rounded-lg' width={150} height={96} src={videoUrl} />
+            <CldVideoPlayer className='rounded-lg' width={150} height={96} src={videoUrl} />
           </div>
 
           <DialogFooter>

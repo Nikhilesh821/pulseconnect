@@ -106,10 +106,10 @@ const MessageList = () => {
                   </>
 
                 ) : message.messageType === "image" ? (
-                  (<div className='flex flex-col items-end gap-1'>
-                    <img  src={message.content} alt='message_image' className='rounded-lg h-40 md:h-52 object-cover cursor-pointer' />
+                  <div className='flex flex-col items-end gap-1'>
+                    <img src={message.content} alt='message_image' className='rounded-lg h-40 md:h-52 object-cover cursor-pointer' />
                     <p className='text-muted-foreground'>{getReadableTime(message.timeStamp)}</p>
-                  </div>)
+                  </div>
                 ) : message.messageType === "video" ? (
                   <div className='w-52 h-40 gap-1 flex flex-col items-end mt-5 rounded-lg'>
                     <CldVideoPlayer
@@ -120,12 +120,12 @@ const MessageList = () => {
                     />
                     <p className='text-muted-foreground'>{getReadableTime(message.timeStamp)}</p>
                   </div>
-                ) : ""
+                ) : null
               }
 
               {message.senderId == currentUser?.id && (
                 <Avatar className='flex justify-center items-center'>
-                  <AvatarImage src={currentUser?.picture!} alt="user_image" className='border-1 border-gray-400 rounded-full w-10 h-10 object-cover' />
+                  <AvatarImage src={currentUser?.picture!} alt="user_image" className='border border-gray-400 rounded-full w-10 h-10 object-cover' />
                 </Avatar>
               )}
 
@@ -134,13 +134,13 @@ const MessageList = () => {
         ))}
 
         {isMessagesLoading && (
-          <>
+          <div key="loading-skeletons">
             <MessageSkeleton />
             <MessageSkeleton />
             <MessageSkeleton />
             <MessageSkeleton />
             <MessageSkeleton />
-          </>
+          </div>
         )}
 
       </AnimatePresence>

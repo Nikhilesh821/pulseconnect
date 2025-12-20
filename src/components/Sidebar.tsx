@@ -22,8 +22,8 @@ const Sidebar = ({ isCollapsed, users }: { isCollapsed: boolean, users: User[] }
     const [playClickSound] = useSound('/sounds/mouse-click.mp3')
     const { soundEnabled } = usePreferences()
     const { user } = useKindeBrowserClient()
-    if(user?.picture?.includes("gravatar")){
-        user.picture=`https://avatar.iran.liara.run/public/boy?username=${user?.given_name}`
+    if (user?.picture?.includes("gravatar")) {
+        user.picture = `https://avatar.iran.liara.run/public/boy?username=${user?.given_name}`
     }
     return (
         <div className='relative ml-1 flex flex-col gap-4 p-2 h-full data-[collapsed=true]:p-2 max-h-full overflow-auto bg-background'>
@@ -40,7 +40,9 @@ const Sidebar = ({ isCollapsed, users }: { isCollapsed: boolean, users: User[] }
             }
             <ScrollArea className='gap-2 px-2 group-[[data-collapsed=true]]:justify-center group-[[data-collapsed=true]]:px-2'>
                 {
-                    users.map((user, index) => (
+                    !users?.length ? (
+                        <p className='text-center text-muted-foreground'>No Chats</p>
+                    ) : users.map((user, index) => (
 
                         isCollapsed ? (
                             <TooltipProvider key={index}>
@@ -56,13 +58,13 @@ const Sidebar = ({ isCollapsed, users }: { isCollapsed: boolean, users: User[] }
                                                     {user.name.split(" ")[0].charAt(0) + user.name.split(" ")[1].charAt(0)}
                                                 </AvatarFallback>
                                             </Avatar>
-                                            <span className={"sr-only " }>
+                                            <span className={"sr-only "}>
                                                 {user.name}
 
                                             </span>
                                         </div>
                                     </TooltipTrigger>
-                                    <TooltipContent side='left' className={'flex items-center mr-6 ' }>
+                                    <TooltipContent side='left' className={'flex items-center mr-6 '}>
                                         {user.name}
                                     </TooltipContent>
                                 </Tooltip>
@@ -71,6 +73,7 @@ const Sidebar = ({ isCollapsed, users }: { isCollapsed: boolean, users: User[] }
                             soundEnabled && playClickSound()
                             setSelectedUser(user)
                         }} variant={"grey"} size={"xl"} className={cn("w-full justify-start rounded-full gap-4 my-1.5", selectedUser?.email === user.email && "dark:bg-muted dark:text-white dark:hover:bg-muted dark:hover:text-white shrink")} key={index}>
+
                             <Avatar className=' flex justify-center items-center'>
                                 <AvatarImage alt="user_image" className=' w-10 h-10' src={user.image} />
                                 <AvatarFallback className='font-bold'>

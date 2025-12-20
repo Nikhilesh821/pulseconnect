@@ -10,7 +10,7 @@ export async function checkAuthStatus() {
     if (!user) {
         return { success: false }
     }
-    const userId = `user:"${user.id}`
+    const userId = `user:${user.id}`
     const existingUser = await redis.hgetall(userId)
     //sign up case 
     if (!existingUser || Object.keys(existingUser).length === 0) {
@@ -24,5 +24,5 @@ export async function checkAuthStatus() {
         })
     }
 
-    return{success:true}
+    return { success: true }
 }
