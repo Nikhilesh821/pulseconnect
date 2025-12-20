@@ -45,7 +45,7 @@ export async function sendMessageAction({ content, messageType, receiverId }: Se
     })
 
     // Add the message into a conversation
-    pipeline.zadd(`${conversationId}:messages`, { score: timeStamp, member: JSON.stringify(messageId) })
+    pipeline.zadd(`${conversationId}:messages`, { score: timeStamp, member: messageId })
 
     // Execute all redis commands in one roundtrip
     await pipeline.exec()

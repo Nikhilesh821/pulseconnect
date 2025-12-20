@@ -1,3 +1,4 @@
+"use client"
 import React, { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from "framer-motion"
 import { Image as ImageIcon, Loader, SendHorizonalIcon, ThumbsUpIcon, Video } from 'lucide-react'
@@ -215,7 +216,7 @@ const ChatBottomBar = () => {
             <DialogTitle className={inria.className}>Image Preview</DialogTitle>
           </DialogHeader>
           <div className='flex justify-center items-center rounded-lg relative h-96 w-full mx-auto'>
-            <Image src={imageUrl} alt='Image Preview' fill className='object-contain rounded-lg' />
+            {imageUrl && <Image src={imageUrl} alt='Image Preview' fill className='object-contain rounded-lg' />}
           </div>
 
           <DialogFooter>
@@ -239,7 +240,7 @@ const ChatBottomBar = () => {
             <DialogTitle className={inria.className}>Video Preview</DialogTitle>
           </DialogHeader>
           <div className='flex justify-center items-center rounded-lg relative h-96 w-full mx-auto'>
-            <CldVideoPlayer className='rounded-lg' width={150} height={96} src={videoUrl} />
+            {videoUrl && <CldVideoPlayer className='rounded-lg' width={150} height={96} src={videoUrl} />}
           </div>
 
           <DialogFooter>
@@ -248,7 +249,8 @@ const ChatBottomBar = () => {
               type='submit'
               onClick={() => {
                 sendMessage({ content: videoUrl, messageType: "video", receiverId: selectedUser?.id! });
-                setDisplay(false)
+                setVideoUrl("");
+                setDisplay(true);
               }}
             >
               Send

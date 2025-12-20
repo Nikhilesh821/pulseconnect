@@ -1,3 +1,4 @@
+"use client"
 import React, { useEffect, useRef } from 'react'
 import { AnimatePresence, motion } from "framer-motion"
 import { cn } from '@/lib/utils'
@@ -82,7 +83,7 @@ const MessageList = () => {
                 {/* Avatar (always first in JSX, position handled by flex-direction) */}
                 <Avatar className='flex justify-center items-center mb-5 h-10 w-10 shrink-0'>
                   <AvatarImage
-                    src={message.senderId === currentUser?.id ? (currentUser?.picture || "") : (selectedUser?.image || "")}
+                    src={message.senderId === currentUser?.id ? (currentUser?.picture || undefined) : (selectedUser?.image || undefined)}
                     alt="avatar"
                     className='rounded-full object-cover'
                   />
@@ -98,10 +99,9 @@ const MessageList = () => {
                 ) : message.messageType === "image" ? (
                   <img src={message.content} alt='message_image' className='rounded-2xl h-40 md:h-52 object-contain cursor-pointer bg-accent/50 max-w-full shadow-sm mb-5' />
                 ) : message.messageType === "video" ? (
-                  <div className='w-full max-w-[280px] md:max-w-xs rounded-2xl overflow-hidden shadow-sm mb-5'>
-                    <CldVideoPlayer
-                      width="400"
-                      height="300"
+                  <div className='w-full max-w-[280px] md:max-w-xs rounded-2xl overflow-hidden shadow-sm mb-5 bg-black'>
+                    <video
+                      controls
                       className='h-full w-full'
                       src={message.content}
                     />
