@@ -18,11 +18,13 @@ const ChatTopBar = () => {
   const [isVideoCall, setIsVideoCall] = useState(false)
   const [isCameraOff, setIsCameraOff] = useState(false)
 
+  const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null)
+  const [localStreamState, setLocalStreamState] = useState<MediaStream | null>(null)
+  const remoteStreamState = useRef<MediaStream | null>(null) // Internal ref to keep track of remote stream
   const peerConnection = useRef<RTCPeerConnection | null>(null)
   const localStream = useRef<MediaStream | null>(null)
-  const remoteVideoRef = useRef<HTMLVideoElement | null>(null)
-  const localVideoRef = useRef<HTMLVideoElement | null>(null)
   const pendingOffer = useRef<any>(null)
+  const iceCandidateQueue = useRef<RTCIceCandidateInit[]>([])
 
   const handleLocalEndCall = () => {
     if (peerConnection.current) {
@@ -38,6 +40,10 @@ const ChatTopBar = () => {
     setIsMuted(false)
     setIsCameraOff(false)
     pendingOffer.current = null
+    setRemoteStream(null)
+    setLocalStreamState(null)
+    remoteStreamState.current = null
+    iceCandidateQueue.current = []
   }
 
   const endCall = () => {
@@ -71,16 +77,25 @@ const ChatTopBar = () => {
         // For example - User A has generated a "Session Description" (SDP) and sent it to User B which will be used to create a connection between User A and User B when user B accepts the call
         pendingOffer.current = { from, signal: signal.sdp }
       } else if (type === 'answer' && peerConnection.current) {
-        // This is when user B decides to accept the call if accepts the call then User B will send a "Session Description" (SDP) to User A which will be used to create a connection between User A and User B.
         await peerConnection.current.setRemoteDescription(new RTCSessionDescription(signal))
-      } else if (type === 'ice-candidate' && peerConnection.current) {
-        try {
-          // Browsers can find the fastest path to send audio data.
-          await peerConnection.current.addIceCandidate(new RTCIceCandidate(signal))
-        } catch (e) {
-          console.error('Error adding ice candidate', e)
+        setCallState('active')
+        // Process any queued candidates
+        while (iceCandidateQueue.current.length > 0) {
+          const candidate = iceCandidateQueue.current.shift()
+          if (candidate) {
+            await peerConnection.current.addIceCandidate(new RTCIceCandidate(candidate))
+          }
         }
-        // handle end call signal
+      } else if (type === 'ice-candidate') {
+        if (peerConnection.current && peerConnection.current.remoteDescription) {
+          try {
+            await peerConnection.current.addIceCandidate(new RTCIceCandidate(signal))
+          } catch (e) {
+            console.error('Error adding ice candidate', e)
+          }
+        } else {
+          iceCandidateQueue.current.push(signal)
+        }
       } else if (type === 'end-call') {
         handleLocalEndCall();
       }
@@ -92,7 +107,12 @@ const ChatTopBar = () => {
     }
   }, [currentUser?.id])
 
-  const setupPeerConnection = async () => {
+  const setupPeerConnection = async (isVideo: boolean) => {
+    // If there's an existing stream, stop it first to release the hardware
+    if (localStream.current) {
+      localStream.current.getTracks().forEach(track => track.stop());
+    }
+
     // Initializes the RTCPeerConnection object which manages the entire P2P lifecycle.
     peerConnection.current = new RTCPeerConnection({
       iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
@@ -125,32 +145,47 @@ const ChatTopBar = () => {
 
     // This is the remote audio/video stream that fires when the remote track is added(starts arriving from the other person) to the connection.
     peerConnection.current.ontrack = (event) => {
-      if (remoteVideoRef.current) {
-        remoteVideoRef.current.srcObject = event.streams[0]
+      console.log('Got remote track:', event.streams[0])
+      remoteStreamState.current = event.streams[0]
+      setRemoteStream(event.streams[0])
+    }
+
+    try {
+      // get the usermedia and starts recording their audio/video
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: isVideo
+      })
+      localStream.current = stream
+      setLocalStreamState(stream)
+    } catch (error: any) {
+      console.error('Error accessing media devices:', error)
+      if (error.name === 'NotReadableError') {
+        alert('Could not start video source. Your camera might be in use by another application or tab.')
+      } else {
+        alert('Could not access camera/microphone: ' + error.message)
       }
+      handleLocalEndCall()
+      throw error // Re-throw to stop the call initiation
     }
 
-    // get the usermedia and starts recording their audio/video
-    localStream.current = await navigator.mediaDevices.getUserMedia({
-      audio: true,
-      video: isVideoCall
-    })
-
-    if (localVideoRef.current) {
-      localVideoRef.current.srcObject = localStream.current
-    }
-
-    // addTrack takes the local audio track and adds it to the connection.
-    localStream.current.getTracks().forEach(track => {
+    // addTrack takes the local tracks and adds them to the connection.
+    localStream.current!.getTracks().forEach(track => {
       peerConnection.current?.addTrack(track, localStream.current!)
     })
   }
 
   const initiateCall = async (video: boolean = false) => {
-    if (!selectedUser?.id) return
+    if (!selectedUser?.id || callState !== 'idle') return
     setIsVideoCall(video)
     setCallState('calling')
-    await setupPeerConnection()
+
+    try {
+      await setupPeerConnection(video)
+    } catch (e) {
+      // Error is handled inside setupPeerConnection
+      return
+    }
 
     const offer = await peerConnection.current!.createOffer()
     await peerConnection.current!.setLocalDescription(offer)
@@ -167,11 +202,24 @@ const ChatTopBar = () => {
   }
 
   const acceptCall = async () => {
-    if (!pendingOffer.current) return
+    if (!pendingOffer.current || callState === 'active') return
     setCallState('active')
-    await setupPeerConnection()
+
+    try {
+      await setupPeerConnection(isVideoCall)
+    } catch (e) {
+      // Error is handled inside setupPeerConnection
+      return
+    }
 
     await peerConnection.current!.setRemoteDescription(new RTCSessionDescription(pendingOffer.current.signal))
+    // Process any queued candidates
+    while (iceCandidateQueue.current.length > 0) {
+      const candidate = iceCandidateQueue.current.shift()
+      if (candidate) {
+        await peerConnection.current!.addIceCandidate(new RTCIceCandidate(candidate))
+      }
+    }
     const answer = await peerConnection.current!.createAnswer()
     await peerConnection.current!.setLocalDescription(answer)
 
@@ -204,7 +252,15 @@ const ChatTopBar = () => {
 
   return (
     <div className='w-full h-20 flex p-4 justify-between items-center border-b'>
-      <video ref={remoteVideoRef} autoPlay playsInline className="hidden" />
+      {/* Hidden video element to keep the remote stream active even when dialog is closed */}
+      <video
+        ref={(el) => {
+          if (el && remoteStream) el.srcObject = remoteStream
+        }}
+        autoPlay
+        playsInline
+        className="hidden"
+      />
 
       <div className='flex items-center gap-2'>
         <Avatar className='flex justify-center items-center h-10 w-10 shrink-0'>
@@ -264,14 +320,18 @@ const ChatTopBar = () => {
             {isVideoCall && callState === 'active' ? (
               <div className="grid grid-cols-2 gap-4 w-full aspect-video bg-black rounded-lg overflow-hidden relative">
                 <video
-                  ref={remoteVideoRef}
+                  ref={(el) => {
+                    if (el && remoteStream) el.srcObject = remoteStream
+                  }}
                   autoPlay
                   playsInline
                   className="w-full h-full object-cover bg-muted"
                 />
                 <div className="relative w-full h-full">
                   <video
-                    ref={localVideoRef}
+                    ref={(el) => {
+                      if (el && localStreamState) el.srcObject = localStreamState
+                    }}
                     autoPlay
                     playsInline
                     muted
@@ -283,7 +343,9 @@ const ChatTopBar = () => {
             ) : isVideoCall && callState === 'calling' ? (
               <div className="w-full aspect-video bg-black rounded-lg overflow-hidden relative">
                 <video
-                  ref={localVideoRef}
+                  ref={(el) => {
+                    if (el && localStreamState) el.srcObject = localStreamState
+                  }}
                   autoPlay
                   playsInline
                   muted
