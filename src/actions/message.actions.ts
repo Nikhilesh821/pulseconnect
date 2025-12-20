@@ -53,7 +53,7 @@ export async function sendMessageAction({ content, messageType, receiverId }: Se
     const channelName = `${senderId}__${receiverId}`.split('__').sort().join('__')
 
     // Broadcast via Node.js WebSocket server
-    const broadcastUrl = `http://localhost:3001/broadcast`;
+    const broadcastUrl = `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/broadcast`;
 
     fetch(broadcastUrl, {
         method: 'POST',
