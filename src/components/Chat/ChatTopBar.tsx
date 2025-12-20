@@ -1,6 +1,6 @@
 import { useSelectedUser } from '@/store/useSelectedUser'
 import { Avatar, AvatarImage } from '@/components/ui/avatar'
-import { X, Phone, PhoneOff, Mic, MicOff } from 'lucide-react'
+import { X, Phone, PhoneOff, Mic, MicOff, Video, VideoOff } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
 import useSound from 'use-sound'
 import { useKindeBrowserClient } from '@kinde-oss/kinde-auth-nextjs'
@@ -15,14 +15,16 @@ const ChatTopBar = () => {
 
   const [callState, setCallState] = useState<'idle' | 'calling' | 'incoming' | 'active'>('idle')
   const [isMuted, setIsMuted] = useState(false)
+  const [isVideoCall, setIsVideoCall] = useState(false)
+  const [isCameraOff, setIsCameraOff] = useState(false)
 
   const peerConnection = useRef<RTCPeerConnection | null>(null)
   const localStream = useRef<MediaStream | null>(null)
-  const remoteAudioRef = useRef<HTMLAudioElement | null>(null)
+  const remoteVideoRef = useRef<HTMLVideoElement | null>(null)
+  const localVideoRef = useRef<HTMLVideoElement | null>(null)
   const pendingOffer = useRef<any>(null)
 
   const handleLocalEndCall = () => {
-    console.log("Cleaning up local call state");
     if (peerConnection.current) {
       peerConnection.current.close()
       peerConnection.current = null
@@ -32,13 +34,15 @@ const ChatTopBar = () => {
       localStream.current = null
     }
     setCallState('idle')
+    setIsVideoCall(false)
+    setIsMuted(false)
+    setIsCameraOff(false)
     pendingOffer.current = null
   }
 
   const endCall = () => {
     // Notify the other peer
     const targetId = selectedUser?.id || pendingOffer.current?.from;
-    console.log("Initiating end call for:", targetId);
     if (targetId) {
       socket.emit('signal', {
         to: targetId,
@@ -57,24 +61,27 @@ const ChatTopBar = () => {
     socket.emit('join-self', currentUser.id)
 
     const handleSignal = async ({ from, signal, type }: any) => {
-      console.log(`Received ${type} signal from ${from}`)
       if (type === 'offer') {
         // Only receive calls from the person we are currently chatting with
-        // Actually, in a real app you'd want to allow calls from anyone, 
-        // but for this simple implementation let's just log it.
+        // In a real app you'd want to allow calls from anyone but for implemetation simplicity we are only allowing calls from the person we are currently chatting with
+
         setCallState('incoming')
+        setIsVideoCall(signal.isVideo)
         // Store the signaling data to act on it when user accepts
-        pendingOffer.current = { from, signal }
+        // For example - User A has generated a "Session Description" (SDP) and sent it to User B which will be used to create a connection between User A and User B when user B accepts the call
+        pendingOffer.current = { from, signal: signal.sdp }
       } else if (type === 'answer' && peerConnection.current) {
+        // This is when user B decides to accept the call if accepts the call then User B will send a "Session Description" (SDP) to User A which will be used to create a connection between User A and User B.
         await peerConnection.current.setRemoteDescription(new RTCSessionDescription(signal))
       } else if (type === 'ice-candidate' && peerConnection.current) {
         try {
+          // Browsers can find the fastest path to send audio data.
           await peerConnection.current.addIceCandidate(new RTCIceCandidate(signal))
         } catch (e) {
           console.error('Error adding ice candidate', e)
         }
+        // handle end call signal
       } else if (type === 'end-call') {
-        console.log("Call ended by remote peer");
         handleLocalEndCall();
       }
     }
@@ -85,13 +92,26 @@ const ChatTopBar = () => {
     }
   }, [currentUser?.id])
 
-
-
   const setupPeerConnection = async () => {
+    // Initializes the RTCPeerConnection object which manages the entire P2P lifecycle.
     peerConnection.current = new RTCPeerConnection({
       iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
     })
 
+    // as soon as the connection is created the browser starts looking for 'candidates' which are the best possible paths to send audio data.
+
+    // an ice canidate is just a potential network address where the remote peer can send data to us.
+
+    // A single browser usually generates several candidates
+    // Local Candidate: Your internal IP (e.g., 192.168.1.5). Good if you are both on the same WiFi.
+    // Server Reflexive Candidate: Your Public IP (found via the STUN server). Needed to get through your home router.
+    // Relay Candidate: A TURN server IP (a backup if direct connection is blocked by a firewall).
+
+    // User A finds a potential "path" (Candidate #1).
+    // User A can't send it directly to User B yet because the "P2P pipe" isn't open.
+    // So, User A sends it to the Signaling Server (Socket.io).
+    // The Signaling Server "Forwards" it to User B.
+    // User B tries that path. If it works, the P2P pipe opens!
     peerConnection.current.onicecandidate = (event) => {
       if (event.candidate && selectedUser?.id) {
         socket.emit('signal', {
@@ -103,21 +123,32 @@ const ChatTopBar = () => {
       }
     }
 
+    // This is the remote audio/video stream that fires when the remote track is added(starts arriving from the other person) to the connection.
     peerConnection.current.ontrack = (event) => {
-      console.log('Received remote track')
-      if (remoteAudioRef.current) {
-        remoteAudioRef.current.srcObject = event.streams[0]
+      if (remoteVideoRef.current) {
+        remoteVideoRef.current.srcObject = event.streams[0]
       }
     }
 
-    localStream.current = await navigator.mediaDevices.getUserMedia({ audio: true })
+    // get the usermedia and starts recording their audio/video
+    localStream.current = await navigator.mediaDevices.getUserMedia({
+      audio: true,
+      video: isVideoCall
+    })
+
+    if (localVideoRef.current) {
+      localVideoRef.current.srcObject = localStream.current
+    }
+
+    // addTrack takes the local audio track and adds it to the connection.
     localStream.current.getTracks().forEach(track => {
       peerConnection.current?.addTrack(track, localStream.current!)
     })
   }
 
-  const initiateCall = async () => {
+  const initiateCall = async (video: boolean = false) => {
     if (!selectedUser?.id) return
+    setIsVideoCall(video)
     setCallState('calling')
     await setupPeerConnection()
 
@@ -128,7 +159,10 @@ const ChatTopBar = () => {
       to: selectedUser.id,
       from: currentUser?.id,
       type: 'offer',
-      signal: offer
+      signal: {
+        sdp: offer,
+        isVideo: video
+      }
     })
   }
 
@@ -150,10 +184,6 @@ const ChatTopBar = () => {
     pendingOffer.current = null
   }
 
-
-
-
-
   const toggleMute = () => {
     if (localStream.current) {
       localStream.current.getAudioTracks().forEach(track => {
@@ -163,9 +193,18 @@ const ChatTopBar = () => {
     }
   }
 
+  const toggleCamera = () => {
+    if (localStream.current) {
+      localStream.current.getVideoTracks().forEach(track => {
+        track.enabled = !track.enabled
+      })
+      setIsCameraOff(!isCameraOff)
+    }
+  }
+
   return (
     <div className='w-full h-20 flex p-4 justify-between items-center border-b'>
-      <audio ref={remoteAudioRef} autoPlay />
+      <video ref={remoteVideoRef} autoPlay playsInline className="hidden" />
 
       <div className='flex items-center gap-2'>
         <Avatar className='flex justify-center items-center h-10 w-10 shrink-0'>
@@ -177,8 +216,13 @@ const ChatTopBar = () => {
       </div>
 
       <div className='flex gap-4 items-center'>
+        <Video
+          onClick={() => initiateCall(true)}
+          className='text-muted-foreground cursor-pointer hover:text-green-500 transition-colors'
+          size={20}
+        />
         <Phone
-          onClick={initiateCall}
+          onClick={() => initiateCall(false)}
           className='text-muted-foreground cursor-pointer hover:text-green-500 transition-colors'
           size={20}
         />
@@ -188,11 +232,10 @@ const ChatTopBar = () => {
         }} className='text-muted-foreground cursor-pointer hover:text-primary' />
       </div>
 
-      {/* Incoming Call Dialog */}
       <Dialog open={callState === 'incoming'}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Incoming Voice Call</DialogTitle>
+            <DialogTitle>Incoming {isVideoCall ? 'Video' : 'Voice'} Call</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col items-center justify-center p-4 gap-4">
             <Avatar className="h-20 w-20">
@@ -211,23 +254,68 @@ const ChatTopBar = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Active Call / Calling Overlay */}
       <Dialog open={callState === 'calling' || callState === 'active'}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className={`${isVideoCall ? 'sm:max-w-[800px]' : 'sm:max-w-md'}`}>
           <DialogHeader>
             <DialogTitle>{callState === 'calling' ? 'Calling...' : 'In Call'}</DialogTitle>
           </DialogHeader>
-          <div className="flex flex-col items-center justify-center p-4 gap-4">
-            <Avatar className={`h-24 w-24 ${callState === 'calling' ? 'animate-pulse' : ''}`}>
-              <AvatarImage src={selectedUser?.image} className="rounded-full" />
-            </Avatar>
-            <p className="text-xl font-semibold">{selectedUser?.name}</p>
-            {callState === 'active' && <p className="text-green-500 animate-pulse">Connected</p>}
+
+          <div className='flex flex-col items-center justify-center p-4 gap-4 w-full'>
+            {isVideoCall && callState === 'active' ? (
+              <div className="grid grid-cols-2 gap-4 w-full aspect-video bg-black rounded-lg overflow-hidden relative">
+                <video
+                  ref={remoteVideoRef}
+                  autoPlay
+                  playsInline
+                  className="w-full h-full object-cover bg-muted"
+                />
+                <div className="relative w-full h-full">
+                  <video
+                    ref={localVideoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    className="w-full h-full object-cover bg-muted"
+                  />
+                  <div className="absolute bottom-2 left-2 bg-black/50 px-2 py-1 rounded text-xs text-white">You</div>
+                </div>
+              </div>
+            ) : isVideoCall && callState === 'calling' ? (
+              <div className="w-full aspect-video bg-black rounded-lg overflow-hidden relative">
+                <video
+                  ref={localVideoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  className="w-full h-full object-cover opacity-50"
+                />
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
+                  <Avatar className="h-20 w-20 mb-4 animate-pulse">
+                    <AvatarImage src={selectedUser?.image} className="rounded-full" />
+                  </Avatar>
+                  <p className="text-xl font-semibold">Calling {selectedUser?.name}...</p>
+                </div>
+              </div>
+            ) : (
+              <>
+                <Avatar className={`h-24 w-24 ${callState === 'calling' ? 'animate-pulse' : ''}`}>
+                  <AvatarImage src={selectedUser?.image} className="rounded-full" />
+                </Avatar>
+                <p className="text-xl font-semibold">{selectedUser?.name}</p>
+                {callState === 'active' && <p className="text-green-500 animate-pulse">Connected</p>}
+              </>
+            )}
           </div>
+
           <DialogFooter className="sm:justify-center gap-4">
             <Button variant="ghost" onClick={toggleMute} className="rounded-full h-12 w-12 p-0">
               {isMuted ? <MicOff className="h-6 w-6 text-red-500" /> : <Mic className="h-6 w-6" />}
             </Button>
+            {isVideoCall && (
+              <Button variant="ghost" onClick={toggleCamera} className="rounded-full h-12 w-12 p-0">
+                {isCameraOff ? <VideoOff className="h-6 w-6 text-red-500" /> : <Video className="h-6 w-6" />}
+              </Button>
+            )}
             <Button onClick={endCall} className="rounded-full h-12 w-12 p-0 bg-red-500 hover:bg-red-600 text-white border-none">
               <PhoneOff className="h-6 w-6" />
             </Button>
