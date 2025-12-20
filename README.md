@@ -1,36 +1,81 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Real-Time Chat & Video Call Application
 
-## Getting Started
+A high-performance, modern chat application built with **Next.js**, **Socket.IO**, and **Redis**. This application supports real-time messaging, image sharing via Cloudinary, and high-quality audio/video calls using WebRTC.
 
-First, run the development server:
+## 🚀 Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+-   **Real-Time Messaging**: Instant message delivery using custom Socket.IO signaling.
+-   **Audio & Video Calls**: P2P communication powered by WebRTC with automatic ICE candidate queueing for reliability.
+-   **Image Sharing**: Seamless image uploads and optimization using Cloudinary.
+-   **Redis Integration**: Fast data caching and messaging persistence using Upstash Redis.
+-   **User Authentication**: Secure login and management via Kinde Auth.
+-   **Responsive Design**: A premium, mobile-first UI with vertical video layouts for smaller screens and side-by-side views for desktop.
+-   **State Management**: Optimized client-side state using Zustand and TanStack Query.
+-   **Theming**: Full support for Dark Mode and custom aesthetics.
+
+## 🛠️ Tech Stack
+
+-   **Frontend**: Next.js 16 (App Router), Tailwind CSS, Framer Motion, Radix UI.
+-   **Backend**: Node.js Express server for WebSockets.
+-   **Database**: Upstash Redis (Serverless Redis).
+-   **Real-time & Media**: Socket.IO, WebRTC API.
+-   **Auth**: Kinde OSS.
+-   **Storage**: Cloudinary.
+
+## 🏃 Getting Started
+
+### 1. Prerequisite Environments
+Create a `.env` file in the root directory with the following keys:
+```env
+# Kinde Auth
+KINDE_CLIENT_ID=your_id
+KINDE_CLIENT_SECRET=your_secret
+KINDE_ISSUER_URL=your_url
+KINDE_SITE_URL=http://localhost:3000
+KINDE_POST_LOGOUT_REDIRECT_URL=http://localhost:3000
+KINDE_POST_LOGIN_REDIRECT_URL=http://localhost:3000
+
+# Upstash Redis
+UPSTASH_REDIS_REST_URL=your_url
+UPSTASH_REDIS_REST_TOKEN=your_token
+
+# Cloudinary
+NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_key
+CLOUDINARY_API_SECRET=your_secret
+
+# Socket Server
+NEXT_PUBLIC_SOCKET_SERVER_URL=http://localhost:3001
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Install Dependencies
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3. Run the Application
+You need to run both the Next.js development server and the WebSocket server.
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+**Terminal 1 (Next.js):**
+```bash
+npm run dev
+```
 
-## Learn More
+**Terminal 2 (WebSocket Server):**
+```bash
+npm run socket
+```
 
-To learn more about Next.js, take a look at the following resources:
+## 🏗️ Project Structure
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+-   `/src/actions`: Server actions for database and broadcast logic.
+-   `/src/components/Chat`: Core chat components (TopBar, BottomBar, MessageList).
+-   `/server.js`: The custom Express + Socket.IO server for WebRTC signaling and broadcasting.
+-   `/src/store`: Zustand stores for global application state.
+-   `/src/lib`: Shared utilities, database, and socket clients.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+## 🔒 Security
+The application uses Kinde for secure authentication. User data and chat logic are protected via server-side verification in Next.js actions.
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+## 📄 License
+MIT

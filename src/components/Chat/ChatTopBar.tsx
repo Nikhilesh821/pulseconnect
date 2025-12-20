@@ -145,7 +145,6 @@ const ChatTopBar = () => {
 
     // This is the remote audio/video stream that fires when the remote track is added(starts arriving from the other person) to the connection.
     peerConnection.current.ontrack = (event) => {
-      console.log('Got remote track:', event.streams[0])
       remoteStreamState.current = event.streams[0]
       setRemoteStream(event.streams[0])
     }
@@ -183,7 +182,6 @@ const ChatTopBar = () => {
     try {
       await setupPeerConnection(video)
     } catch (e) {
-      // Error is handled inside setupPeerConnection
       return
     }
 
@@ -318,14 +316,14 @@ const ChatTopBar = () => {
 
           <div className='flex flex-col items-center justify-center p-4 gap-4 w-full'>
             {isVideoCall && callState === 'active' ? (
-              <div className="grid grid-cols-2 gap-4 w-full aspect-video bg-black rounded-lg overflow-hidden relative">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full md:aspect-video bg-black rounded-lg overflow-hidden relative">
                 <video
                   ref={(el) => {
                     if (el && remoteStream) el.srcObject = remoteStream
                   }}
                   autoPlay
                   playsInline
-                  className="w-full h-full object-cover bg-muted"
+                  className="w-full h-full aspect-video md:aspect-auto object-cover bg-muted"
                 />
                 <div className="relative w-full h-full">
                   <video
@@ -335,7 +333,7 @@ const ChatTopBar = () => {
                     autoPlay
                     playsInline
                     muted
-                    className="w-full h-full object-cover bg-muted"
+                    className="w-full h-full aspect-video md:aspect-auto object-cover bg-muted"
                   />
                   <div className="absolute bottom-2 left-2 bg-black/50 px-2 py-1 rounded text-xs text-white">You</div>
                 </div>
