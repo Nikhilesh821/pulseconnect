@@ -297,7 +297,7 @@ const ChatTopBar = () => {
             </Avatar>
             <p className="text-lg font-semibold">{selectedUser?.name} is calling you...</p>
           </div>
-          <DialogFooter className="sm:justify-center gap-4">
+          <DialogFooter className="flex-row justify-center gap-4">
             <Button variant="outline" onClick={endCall} className="bg-red-500 hover:bg-red-600 text-white border-none">
               <PhoneOff className="mr-2 h-4 w-4" /> Decline
             </Button>
@@ -367,7 +367,7 @@ const ChatTopBar = () => {
             )}
           </div>
 
-          <DialogFooter className="sm:justify-center gap-4">
+          <DialogFooter className="flex-row justify-center gap-4">
             <Button variant="ghost" onClick={toggleMute} className="rounded-full h-12 w-12 p-0">
               {isMuted ? <MicOff className="h-6 w-6 text-red-500" /> : <Mic className="h-6 w-6" />}
             </Button>
