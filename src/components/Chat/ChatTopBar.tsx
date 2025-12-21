@@ -311,12 +311,12 @@ const ChatTopBar = () => {
       </Dialog>
 
       <Dialog open={callState === 'calling' || callState === 'active'}>
-        <DialogContent className={`${isVideoCall ? 'sm:max-w-[800px] w-full h-full sm:w-[95vw] sm:h-auto' : 'sm:max-w-md'} p-0 overflow-hidden`}>
-          <DialogHeader>
+        <DialogContent className={`${isVideoCall ? 'w-screen h-dvh sm:w-[95vw] sm:h-[95vh] max-w-none' : 'sm:max-w-md'} p-0 overflow-hidden flex flex-col`}>
+          <DialogHeader className={isVideoCall ? "p-4 border-b shrink-0" : ""}>
             <DialogTitle>{callState === 'calling' ? 'Calling...' : 'In Call'}</DialogTitle>
           </DialogHeader>
 
-          <div className='flex flex-col items-center justify-center gap-4 w-full h-full p-4'>
+          <div className={`flex flex-col items-center justify-center gap-4 w-full ${isVideoCall ? 'flex-1' : 'h-full'} p-4`}>
             {isVideoCall && callState === 'active' ? (
               <div className="relative w-full h-full sm:aspect-video bg-black rounded-lg overflow-hidden group">
                 {/* Primary Video */}
@@ -382,7 +382,7 @@ const ChatTopBar = () => {
             )}
           </div>
 
-          <DialogFooter className="flex-row justify-center gap-4">
+          <DialogFooter className={`flex-row justify-center gap-4 ${isVideoCall ? 'p-4 border-t shrink-0' : ''}`}>
             <Button variant="ghost" onClick={toggleMute} className="rounded-full h-12 w-12 p-0">
               {isMuted ? <MicOff className="h-6 w-6 text-red-500" /> : <Mic className="h-6 w-6" />}
             </Button>
