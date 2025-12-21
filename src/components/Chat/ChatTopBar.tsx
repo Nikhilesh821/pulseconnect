@@ -17,6 +17,7 @@ const ChatTopBar = () => {
   const [isMuted, setIsMuted] = useState(false)
   const [isVideoCall, setIsVideoCall] = useState(false)
   const [isCameraOff, setIsCameraOff] = useState(false)
+  const [isRemotePrimary, setIsRemotePrimary] = useState(true)
 
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null)
   const [localStreamState, setLocalStreamState] = useState<MediaStream | null>(null)
@@ -39,6 +40,7 @@ const ChatTopBar = () => {
     setIsVideoCall(false)
     setIsMuted(false)
     setIsCameraOff(false)
+    setIsRemotePrimary(true)
     pendingOffer.current = null
     setRemoteStream(null)
     setLocalStreamState(null)
@@ -316,26 +318,39 @@ const ChatTopBar = () => {
 
           <div className='flex flex-col items-center justify-center p-4 gap-4 w-full'>
             {isVideoCall && callState === 'active' ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full md:aspect-video bg-black rounded-lg overflow-hidden relative">
+              <div className="relative w-full aspect-4/3 md:aspect-video bg-black rounded-lg overflow-hidden group">
+                {/* Primary Video */}
                 <video
                   ref={(el) => {
-                    if (el && remoteStream) el.srcObject = remoteStream
+                    if (el) el.srcObject = isRemotePrimary ? remoteStream : localStreamState
                   }}
                   autoPlay
                   playsInline
-                  className="w-full h-full aspect-video md:aspect-auto object-cover bg-muted"
+                  muted={!isRemotePrimary}
+                  className="w-full h-full object-cover transition-all duration-300"
                 />
-                <div className="relative w-full h-full">
+
+                {/* Secondary (PIP) Video */}
+                <div
+                  onClick={() => setIsRemotePrimary(!isRemotePrimary)}
+                  className="absolute bottom-4 right-4 w-32 md:w-48 aspect-video bg-muted rounded-md border-2 border-white shadow-xl cursor-pointer overflow-hidden transition-all hover:scale-105"
+                >
                   <video
                     ref={(el) => {
-                      if (el && localStreamState) el.srcObject = localStreamState
+                      if (el) el.srcObject = isRemotePrimary ? localStreamState : remoteStream
                     }}
                     autoPlay
                     playsInline
-                    muted
-                    className="w-full h-full aspect-video md:aspect-auto object-cover bg-muted"
+                    muted={isRemotePrimary}
+                    className="w-full h-full object-cover"
                   />
-                  <div className="absolute bottom-2 left-2 bg-black/50 px-2 py-1 rounded text-xs text-white">You</div>
+                  <div className="absolute bottom-1 left-1 bg-black/40 px-1 rounded text-[10px] text-white">
+                    {isRemotePrimary ? 'You' : (selectedUser?.name?.split(' ')[0] || selectedUser?.name)}
+                  </div>
+                </div>
+
+                <div className="absolute top-4 left-4 bg-black/50 px-2 py-1 rounded text-xs text-white">
+                  {isRemotePrimary ? (selectedUser?.name?.split(' ')[0] || selectedUser?.name) : 'You'}
                 </div>
               </div>
             ) : isVideoCall && callState === 'calling' ? (
