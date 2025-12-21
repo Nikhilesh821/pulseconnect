@@ -311,14 +311,14 @@ const ChatTopBar = () => {
       </Dialog>
 
       <Dialog open={callState === 'calling' || callState === 'active'}>
-        <DialogContent className={`${isVideoCall ? 'sm:max-w-[800px]' : 'sm:max-w-md'}`}>
+        <DialogContent className={`${isVideoCall ? 'sm:max-w-[800px] w-full h-full sm:w-[95vw] sm:h-auto' : 'sm:max-w-md'} p-0 overflow-hidden`}>
           <DialogHeader>
             <DialogTitle>{callState === 'calling' ? 'Calling...' : 'In Call'}</DialogTitle>
           </DialogHeader>
 
-          <div className='flex flex-col items-center justify-center p-4 gap-4 w-full'>
+          <div className='flex flex-col items-center justify-center gap-4 w-full h-full p-4'>
             {isVideoCall && callState === 'active' ? (
-              <div className="relative w-full aspect-4/3 md:aspect-video bg-black rounded-lg overflow-hidden group">
+              <div className="relative w-full h-full sm:aspect-video bg-black rounded-lg overflow-hidden group">
                 {/* Primary Video */}
                 <video
                   ref={(el) => {
