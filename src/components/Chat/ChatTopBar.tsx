@@ -441,12 +441,12 @@ const ChatTopBar = () => {
           </div>
 
           <DialogFooter className={cn(
-            "flex-row justify-center gap-2 sm:gap-4",
+            "flex-col sm:flex-row items-center sm:justify-center gap-2 sm:gap-4",
             isVideoCall && callState === 'active'
-              ? "absolute bottom-4 right-4 sm:bottom-8 sm:right-8 bg-black/60 backdrop-blur-lg p-2 sm:p-4 rounded-2xl sm:rounded-3xl border border-white/20 shadow-2xl z-20 flex-wrap"
+              ? "absolute bottom-4 right-4 sm:bottom-8 sm:right-8 bg-black/60 backdrop-blur-lg p-2 sm:p-4 rounded-full sm:rounded-3xl border border-white/20 shadow-2xl z-20"
               : isVideoCall
-                ? "p-4 border-t shrink-0 relative z-20"
-                : "p-4 border-t"
+                ? "flex-row p-4 border-t shrink-0 relative z-20"
+                : "flex-row p-4 border-t"
           )}>
             <Button variant="ghost" onClick={toggleMute} className="rounded-full h-10 w-10 sm:h-12 sm:w-12 p-0 hover:bg-white/20 text-white">
               {isMuted ? <MicOff className="h-5 w-5 sm:h-6 sm:w-6 text-red-500" /> : <Mic className="h-5 w-5 sm:h-6 sm:w-6" />}
