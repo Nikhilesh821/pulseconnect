@@ -18,7 +18,7 @@ export async function checkAuthStatus() {
         const image = imgIsNull ? `https://avatar.iran.liara.run/public/boy?username=${user?.given_name}` : user.picture
         await redis.hset(userId, {
             id: user.id,
-            name: `${user.given_name} ${user.family_name}`,
+            name: `${user.given_name}`,
             email: user.email,
             image: image
         })
