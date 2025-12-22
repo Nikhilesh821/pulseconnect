@@ -305,6 +305,7 @@ const ChatTopBar = () => {
       console.error("Error switching camera:", error)
       alert("Could not switch camera. Keep in mind that some browsers require a page refresh to release the camera hardware.")
     }
+    console.log("selected user",selectedUser?.name)
   }
 
   return (
