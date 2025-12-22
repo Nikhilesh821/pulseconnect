@@ -441,28 +441,28 @@ const ChatTopBar = () => {
           </div>
 
           <DialogFooter className={cn(
-            "flex-row justify-center gap-4",
+            "flex-row justify-center gap-2 sm:gap-4",
             isVideoCall && callState === 'active'
-              ? "absolute bottom-8 right-8 bg-black/60 backdrop-blur-lg p-4 rounded-3xl border border-white/20 shadow-2xl z-20 flex-wrap"
+              ? "absolute bottom-4 right-4 sm:bottom-8 sm:right-8 bg-black/60 backdrop-blur-lg p-2 sm:p-4 rounded-2xl sm:rounded-3xl border border-white/20 shadow-2xl z-20 flex-wrap"
               : isVideoCall
                 ? "p-4 border-t shrink-0 relative z-20"
                 : "p-4 border-t"
           )}>
-            <Button variant="ghost" onClick={toggleMute} className="rounded-full h-12 w-12 p-0 hover:bg-white/20 text-white">
-              {isMuted ? <MicOff className="h-6 w-6 text-red-500" /> : <Mic className="h-6 w-6" />}
+            <Button variant="ghost" onClick={toggleMute} className="rounded-full h-10 w-10 sm:h-12 sm:w-12 p-0 hover:bg-white/20 text-white">
+              {isMuted ? <MicOff className="h-5 w-5 sm:h-6 sm:w-6 text-red-500" /> : <Mic className="h-5 w-5 sm:h-6 sm:w-6" />}
             </Button>
             {isVideoCall && (
-              <Button variant="ghost" onClick={toggleCamera} className="rounded-full h-12 w-12 p-0 hover:bg-white/20 text-white">
-                {isCameraOff ? <VideoOff className="h-6 w-6 text-red-500" /> : <Video className="h-6 w-6" />}
+              <Button variant="ghost" onClick={toggleCamera} className="rounded-full h-10 w-10 sm:h-12 sm:w-12 p-0 hover:bg-white/20 text-white">
+                {isCameraOff ? <VideoOff className="h-5 w-5 sm:h-6 sm:w-6 text-red-500" /> : <Video className="h-5 w-5 sm:h-6 sm:w-6" />}
               </Button>
             )}
             {isVideoCall && hasMultipleCameras && (
-              <Button variant="ghost" onClick={switchCamera} className="rounded-full h-12 w-12 p-0 hover:bg-white/20 text-white">
-                <RefreshCw className="h-6 w-6" />
+              <Button variant="ghost" onClick={switchCamera} className="rounded-full h-10 w-10 sm:h-12 sm:w-12 p-0 hover:bg-white/20 text-white">
+                <RefreshCw className="h-5 w-5 sm:h-6 sm:w-6" />
               </Button>
             )}
-            <Button onClick={endCall} className="rounded-full h-12 w-12 p-0 bg-red-500 hover:bg-red-600 text-white border-none shadow-lg">
-              <PhoneOff className="h-6 w-6" />
+            <Button onClick={endCall} className="rounded-full h-10 w-10 sm:h-12 sm:w-12 p-0 bg-red-500 hover:bg-red-600 text-white border-none shadow-lg">
+              <PhoneOff className="h-5 w-5 sm:h-6 sm:w-6" />
             </Button>
           </DialogFooter>
         </DialogContent>
