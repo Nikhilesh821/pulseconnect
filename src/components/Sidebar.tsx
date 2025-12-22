@@ -58,7 +58,7 @@ const Sidebar = ({ isCollapsed, users }: { isCollapsed: boolean, users: User[] }
                                             <Avatar className='my-4 flex justify-center items-center'>
                                                 <AvatarImage alt="user_image" className='border-2 border-gray-400 justify-center rounded-full w-10 h-10' src={user.image} />
                                                 <AvatarFallback className='font-bold'>
-                                                    {user.name.split(" ")[0].charAt(0) + user.name.split(" ")[1].charAt(0)}
+                                                    {user.name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
                                                 </AvatarFallback>
                                             </Avatar>
                                             <span className={"sr-only "}>
@@ -80,7 +80,7 @@ const Sidebar = ({ isCollapsed, users }: { isCollapsed: boolean, users: User[] }
                             <Avatar className=' flex justify-center items-center'>
                                 <AvatarImage alt="user_image" className=' w-10 h-10' src={user.image} />
                                 <AvatarFallback className='font-bold'>
-                                    {user.name.split(" ")[0].charAt(0)}
+                                    {user.name[0].toUpperCase()}
                                 </AvatarFallback>
                             </Avatar>
                             <div className='flex flex-col font-medium max-w-28'>
@@ -103,7 +103,7 @@ const Sidebar = ({ isCollapsed, users }: { isCollapsed: boolean, users: User[] }
                                 <AvatarImage referrerPolicy='no-referrer' alt="user_image" className='border-2 border-gray-400 justify-center rounded-full w-10 h-10' src={user?.picture || '/user-placeholder.png'} />
                             </Avatar>
                             <p className={'font-semibold ' + ("text-lg ")}>
-                                {user?.given_name} {user?.family_name}
+                                {(`${user?.given_name ?? ""} ${user?.family_name ?? ""}`).trim()}
                             </p>
                         </div>
                     )
