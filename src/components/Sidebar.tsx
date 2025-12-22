@@ -80,7 +80,7 @@ const Sidebar = ({ isCollapsed, users }: { isCollapsed: boolean, users: User[] }
                             <Avatar className=' flex justify-center items-center'>
                                 <AvatarImage alt="user_image" className=' w-10 h-10' src={user.image} />
                                 <AvatarFallback className='font-bold'>
-                                    {user.name.split(" ")[0].charAt(0) + user.name.split(" ")[1].charAt(0)}
+                                    {user.name.split(" ")[0].charAt(0)}
                                 </AvatarFallback>
                             </Avatar>
                             <div className='flex flex-col font-medium max-w-28'>
