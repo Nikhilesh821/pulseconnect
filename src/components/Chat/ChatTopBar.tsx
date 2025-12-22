@@ -1,6 +1,6 @@
 import { useSelectedUser } from '@/store/useSelectedUser'
 import { Avatar, AvatarImage } from '@/components/ui/avatar'
-import { X, Phone, PhoneOff, Mic, MicOff, Video, VideoOff } from 'lucide-react'
+import { X, Phone, PhoneOff, Mic, MicOff, Video, VideoOff, RefreshCw } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
 import useSound from 'use-sound'
 import { useKindeBrowserClient } from '@kinde-oss/kinde-auth-nextjs'
@@ -18,6 +18,8 @@ const ChatTopBar = () => {
   const [isVideoCall, setIsVideoCall] = useState(false)
   const [isCameraOff, setIsCameraOff] = useState(false)
   const [isRemotePrimary, setIsRemotePrimary] = useState(true)
+  const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user')
+  const [hasMultipleCameras, setHasMultipleCameras] = useState(false)
 
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null)
   const [localStreamState, setLocalStreamState] = useState<MediaStream | null>(null)
@@ -46,7 +48,21 @@ const ChatTopBar = () => {
     setLocalStreamState(null)
     remoteStreamState.current = null
     iceCandidateQueue.current = []
+    setFacingMode('user')
   }
+
+  useEffect(() => {
+    const checkCameras = async () => {
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices()
+        const videoDevices = devices.filter(device => device.kind === 'videoinput')
+        setHasMultipleCameras(videoDevices.length > 1)
+      } catch (err) {
+        console.error('Error checking cameras:', err)
+      }
+    }
+    checkCameras()
+  }, [])
 
   const endCall = () => {
     // Notify the other peer
@@ -250,6 +266,47 @@ const ChatTopBar = () => {
     }
   }
 
+  const switchCamera = async () => {
+    if (!localStream.current || !isVideoCall) return
+
+    const newFacingMode = facingMode === 'user' ? 'environment' : 'user'
+
+    try {
+      const newStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: newFacingMode },
+        audio: false
+      })
+
+      const newVideoTrack = newStream.getVideoTracks()[0]
+      const oldVideoTracks = localStream.current.getVideoTracks()
+
+      if (peerConnection.current) {
+        const senders = peerConnection.current.getSenders()
+        const videoSender = senders.find(s => s.track?.kind === 'video')
+        if (videoSender) {
+          await videoSender.replaceTrack(newVideoTrack)
+        }
+      }
+
+      // Stop old tracks
+      oldVideoTracks.forEach(track => track.stop())
+
+      // Combine existing audio with new video track
+      const audioTrack = localStream.current.getAudioTracks()[0]
+      const tracks = []
+      if (audioTrack) tracks.push(audioTrack)
+      tracks.push(newVideoTrack)
+
+      const combinedStream = new MediaStream(tracks)
+      localStream.current = combinedStream
+      setLocalStreamState(combinedStream)
+      setFacingMode(newFacingMode)
+    } catch (error) {
+      console.error("Error switching camera:", error)
+      alert("Could not switch camera. Keep in mind that some browsers require a page refresh to release the camera hardware.")
+    }
+  }
+
   return (
     <div className='w-full h-20 flex p-4 justify-between items-center border-b'>
       {/* Hidden video element to keep the remote stream active even when dialog is closed */}
@@ -327,7 +384,7 @@ const ChatTopBar = () => {
                   autoPlay
                   playsInline
                   muted={!isRemotePrimary}
-                  className="w-full h-full object-cover transition-all duration-300"
+                  className={`w-full h-full object-cover transition-all duration-300 ${(!isRemotePrimary && facingMode === 'user') ? '-scale-x-100' : ''}`}
                 />
 
                 {/* Secondary (PIP) Video */}
@@ -342,7 +399,7 @@ const ChatTopBar = () => {
                     autoPlay
                     playsInline
                     muted={isRemotePrimary}
-                    className="w-full h-full object-cover"
+                    className={`w-full h-full object-cover ${(isRemotePrimary && facingMode === 'user') ? '-scale-x-100' : ''}`}
                   />
                   <div className="absolute bottom-1 left-1 bg-black/40 px-1 rounded text-[10px] text-white">
                     {isRemotePrimary ? 'You' : (selectedUser?.name?.split(' ')[0] || selectedUser?.name)}
@@ -362,7 +419,7 @@ const ChatTopBar = () => {
                   autoPlay
                   playsInline
                   muted
-                  className="w-full h-full object-cover opacity-50"
+                  className={`w-full h-full object-cover opacity-50 ${facingMode === 'user' ? '-scale-x-100' : ''}`}
                 />
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
                   <Avatar className="h-20 w-20 mb-4 animate-pulse">
@@ -389,6 +446,11 @@ const ChatTopBar = () => {
             {isVideoCall && (
               <Button variant="ghost" onClick={toggleCamera} className="rounded-full h-12 w-12 p-0">
                 {isCameraOff ? <VideoOff className="h-6 w-6 text-red-500" /> : <Video className="h-6 w-6" />}
+              </Button>
+            )}
+            {isVideoCall && hasMultipleCameras && (
+              <Button variant="ghost" onClick={switchCamera} className="rounded-full h-12 w-12 p-0">
+                <RefreshCw className="h-6 w-6" />
               </Button>
             )}
             <Button onClick={endCall} className="rounded-full h-12 w-12 p-0 bg-red-500 hover:bg-red-600 text-white border-none">
