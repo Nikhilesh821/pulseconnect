@@ -1,4 +1,5 @@
 import { useSelectedUser } from '@/store/useSelectedUser'
+import { cn } from '@/lib/utils'
 import { Avatar, AvatarImage } from '@/components/ui/avatar'
 import { X, Phone, PhoneOff, Mic, MicOff, Video, VideoOff, RefreshCw } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
@@ -305,7 +306,6 @@ const ChatTopBar = () => {
       console.error("Error switching camera:", error)
       alert("Could not switch camera. Keep in mind that some browsers require a page refresh to release the camera hardware.")
     }
-    console.log("selected user",selectedUser?.name)
   }
 
   return (
@@ -391,7 +391,7 @@ const ChatTopBar = () => {
                 {/* Secondary (PIP) Video */}
                 <div
                   onClick={() => setIsRemotePrimary(!isRemotePrimary)}
-                  className="absolute bottom-4 right-4 w-32 md:w-48 aspect-video bg-muted rounded-md border-2 border-white shadow-xl cursor-pointer overflow-hidden transition-all hover:scale-105"
+                  className="absolute bottom-4 left-4 w-32 md:w-48 aspect-video bg-muted rounded-md border-2 border-white shadow-xl cursor-pointer overflow-hidden transition-all hover:scale-105 z-10"
                 >
                   <video
                     ref={(el) => {
@@ -440,21 +440,28 @@ const ChatTopBar = () => {
             )}
           </div>
 
-          <DialogFooter className={`flex-row justify-center gap-4 ${isVideoCall ? 'p-4 border-t shrink-0' : ''}`}>
-            <Button variant="ghost" onClick={toggleMute} className="rounded-full h-12 w-12 p-0">
+          <DialogFooter className={cn(
+            "flex-row justify-center gap-4",
+            isVideoCall && callState === 'active'
+              ? "absolute bottom-8 right-8 bg-black/60 backdrop-blur-lg p-4 rounded-3xl border border-white/20 shadow-2xl z-20 flex-wrap"
+              : isVideoCall
+                ? "p-4 border-t shrink-0 relative z-20"
+                : "p-4 border-t"
+          )}>
+            <Button variant="ghost" onClick={toggleMute} className="rounded-full h-12 w-12 p-0 hover:bg-white/20 text-white">
               {isMuted ? <MicOff className="h-6 w-6 text-red-500" /> : <Mic className="h-6 w-6" />}
             </Button>
             {isVideoCall && (
-              <Button variant="ghost" onClick={toggleCamera} className="rounded-full h-12 w-12 p-0">
+              <Button variant="ghost" onClick={toggleCamera} className="rounded-full h-12 w-12 p-0 hover:bg-white/20 text-white">
                 {isCameraOff ? <VideoOff className="h-6 w-6 text-red-500" /> : <Video className="h-6 w-6" />}
               </Button>
             )}
             {isVideoCall && hasMultipleCameras && (
-              <Button variant="ghost" onClick={switchCamera} className="rounded-full h-12 w-12 p-0">
+              <Button variant="ghost" onClick={switchCamera} className="rounded-full h-12 w-12 p-0 hover:bg-white/20 text-white">
                 <RefreshCw className="h-6 w-6" />
               </Button>
             )}
-            <Button onClick={endCall} className="rounded-full h-12 w-12 p-0 bg-red-500 hover:bg-red-600 text-white border-none">
+            <Button onClick={endCall} className="rounded-full h-12 w-12 p-0 bg-red-500 hover:bg-red-600 text-white border-none shadow-lg">
               <PhoneOff className="h-6 w-6" />
             </Button>
           </DialogFooter>
