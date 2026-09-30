@@ -11,6 +11,9 @@ frontend:
       commands:
         - env | grep -e KINDE -e UPSTASH >> .env.production || true
         - npm run build
+        - cp .env.production .next/standalone/.env.production || true
+        - cp .env.production .next/.env.production || true
+
 
   artifacts:
     baseDirectory: .next
