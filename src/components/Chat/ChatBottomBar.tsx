@@ -40,7 +40,10 @@ const ChatBottomBar = () => {
   const [playSound3] = useSound('/sounds/keystroke3.mp3')
   const [playSound4] = useSound('/sounds/keystroke4.mp3')
   const [playNotificationSound] = useSound('/sounds/notification.mp3')
-  const { user: currentUser } = useKindeBrowserClient()
+  const { user: kindeUser } = useKindeBrowserClient()
+  const currentUser = kindeUser || { id: "demo-user-1", given_name: "Nikhilesh" }
+
+
   const playSoundFunctions = [playSound1, playSound2, playSound3, playSound4]
   const { soundEnabled } = usePreferences()
   const { selectedUser } = useSelectedUser()
@@ -132,35 +135,41 @@ const ChatBottomBar = () => {
     <>
       <div className='p-4 flex justify-between w-full items-center gap-2 '>
         {!message.trim() && (
-          <CldUploadWidget
-            key="image-upload"
-            onSuccess={(result, { widget }) => {
-              setImageUrl((result.info as CloudinaryUploadWidgetInfo).secure_url)
-              widget.close()
-            }}
-            signatureEndpoint="/api/sign-cloudinary-params">
-            {({ open }) => {
-              return (
+          process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME ? (
+            <CldUploadWidget
+              key="image-upload"
+              onSuccess={(result, { widget }) => {
+                setImageUrl((result.info as CloudinaryUploadWidgetInfo).secure_url)
+                widget.close()
+              }}
+              signatureEndpoint="/api/sign-cloudinary-params">
+              {({ open }) => (
                 <ImageIcon onClick={() => open()} size={24} className='cursor-pointer text-muted-foreground' />
-              );
-            }}
-          </CldUploadWidget>
+              )}
+            </CldUploadWidget>
+          ) : (
+            <ImageIcon size={24} className='cursor-pointer text-muted-foreground opacity-60' />
+          )
         )}
         {!message.trim() && (
-          <CldUploadWidget
-            key="video-upload"
-            onSuccess={(result, { widget }) => {
-              setVideoUrl((result.info as CloudinaryUploadWidgetInfo).secure_url)
-              widget.close()
-            }}
-            signatureEndpoint="/api/sign-cloudinary-params">
-            {({ open }) => {
-              return (
+          process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME ? (
+            <CldUploadWidget
+              key="video-upload"
+              onSuccess={(result, { widget }) => {
+                setVideoUrl((result.info as CloudinaryUploadWidgetInfo).secure_url)
+                widget.close()
+              }}
+              signatureEndpoint="/api/sign-cloudinary-params">
+              {({ open }) => (
                 <Video onClick={() => open()} size={24} className='cursor-pointer text-muted-foreground' />
-              );
-            }}
-          </CldUploadWidget>
+              )}
+            </CldUploadWidget>
+          ) : (
+            <Video size={24} className='cursor-pointer text-muted-foreground opacity-60' />
+          )
         )}
+
+
 
 
         <AnimatePresence>

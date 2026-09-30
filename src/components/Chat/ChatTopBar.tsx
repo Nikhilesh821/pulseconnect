@@ -11,7 +11,10 @@ import { Button } from '@/components/ui/button'
 
 const ChatTopBar = () => {
   const { selectedUser, setSelectedUser } = useSelectedUser()
-  const { user: currentUser } = useKindeBrowserClient()
+  const { user: kindeUser } = useKindeBrowserClient()
+  const currentUser = kindeUser || { id: "demo-user-1", given_name: "Nikhilesh" }
+
+
   const [playSound] = useSound('/sounds/mouse-click.mp3')
 
   const [callState, setCallState] = useState<'idle' | 'calling' | 'incoming' | 'active'>('idle')

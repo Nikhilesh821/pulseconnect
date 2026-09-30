@@ -22,7 +22,12 @@ const inria2 = Inria_Serif({
 const MessageList = () => {
   const { selectedUser } = useSelectedUser()
   const messageContainerRef = useRef<HTMLDivElement>(null)
-  const { user: currentUser, isLoading: isUserLoading } = useKindeBrowserClient()
+  const { user: kindeUser, isLoading: isUserLoading } = useKindeBrowserClient()
+  const currentUser = kindeUser || {
+    id: "demo-user-1",
+    given_name: "Nikhilesh",
+    picture: "https://avatar.iran.liara.run/public/boy?username=Nikhilesh"
+  }
   if (currentUser?.picture?.includes("gravatar")) {
     currentUser.picture = `https://avatar.iran.liara.run/public/boy?username=${currentUser?.given_name}`
   }
@@ -30,11 +35,14 @@ const MessageList = () => {
     queryKey: ['messages', selectedUser?.id],
     queryFn: async () => {
       if (selectedUser && currentUser) {
-        return await getMessageAction(selectedUser.id, currentUser.id)
+        const res = await getMessageAction(selectedUser.id, currentUser.id)
+        return Array.isArray(res) ? res : []
       }
+      return []
     },
 
-    enabled: !!selectedUser && !!currentUser && !isUserLoading
+    enabled: !!selectedUser
+
     // by putting !! we can change an object to corresponding boolean value and we use enabled because useQuery runs immediately as soon as the component messageList is mounted so it ensures that until we do not get the values don't run
   })
 
@@ -53,7 +61,7 @@ const MessageList = () => {
     <div ref={messageContainerRef} className='w-full overflow-y-auto overflow-x-hidden h-full flex flex-col'>
       {/* This component ensures that an animation is applied when items are added to or removed from the list */}
       <AnimatePresence>
-        {!isMessagesLoading && messages?.map((message, index) => (
+        {!isMessagesLoading && Array.isArray(messages) && messages.map((message, index) => (
           <motion.div
             key={index}
             layout
@@ -67,9 +75,10 @@ const MessageList = () => {
                 type: 'spring',
                 damping: 15,
                 bounce: 0.3,
-                duration: index * messages!.indexOf(message) * 0.05 + 0.2
+                duration: 0.25
               }
             }}
+
             style={{
               originX: 0.5,
               originY: 0.5,
