@@ -1,4 +1,7 @@
+export const dynamic = "force-dynamic";
+
 import ChatLayout from "@/components/Chat/ChatLayout";
+
 import PreferencesTab from "@/components/PreferencesTab";
 import { redis } from "@/lib/db";
 import { cookies } from "next/headers";
