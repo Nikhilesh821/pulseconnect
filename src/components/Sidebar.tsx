@@ -18,10 +18,16 @@ const Sidebar = ({ isCollapsed, users }: { isCollapsed: boolean, users: User[] }
     const { selectedUser, setSelectedUser } = useSelectedUser()
     const [playClickSound] = useSound('/sounds/mouse-click.mp3')
     const { soundEnabled } = usePreferences()
-    const { user } = useKindeBrowserClient()
+    const { user: kindeUser } = useKindeBrowserClient()
+    const user = kindeUser || {
+        given_name: "Nikhilesh",
+        family_name: "(Demo)",
+        picture: "https://avatar.iran.liara.run/public/boy?username=Nikhilesh"
+    }
     if (user?.picture?.includes("gravatar")) {
         user.picture = `https://avatar.iran.liara.run/public/boy?username=${user?.given_name}`
     }
+
     return (
         <div
             data-collapsed={isCollapsed}
@@ -108,11 +114,13 @@ const Sidebar = ({ isCollapsed, users }: { isCollapsed: boolean, users: User[] }
                         </div>
                     )
                     }
-                    <div className='flex justify-center'>
-                        <LogoutLink>
-                            <LogOutIcon className='cursor-pointer ml-2' size={28} />
-                        </LogoutLink>
+                    <div className='flex justify-center' onClick={() => {
+                        document.cookie = "demo_user=; path=/; max-age=0";
+                        window.location.href = "/auth";
+                    }}>
+                        <LogOutIcon className='cursor-pointer ml-2 hover:text-red-500 transition-colors' size={28} />
                     </div>
+
                 </div>
             </div>
         </div>

@@ -12,14 +12,23 @@ interface SendMessageArgs {
 }
 export async function sendMessageAction({ content, messageType, receiverId }: SendMessageArgs) {
     const { getUser } = getKindeServerSession()
-    const user = await getUser()
+    let user = await getUser()
     if (!user) {
-        return {
-            success: false,
-            message: "User not authenticated"
+        const { cookies } = await import("next/headers")
+        const cookieStore = await cookies()
+        const isDemo = cookieStore.get("demo_user")?.value === "true"
+        if (isDemo) {
+            user = { id: "demo-user-1", given_name: "Nikhilesh" } as any
+        } else {
+            return {
+                success: false,
+                message: "User not authenticated"
+            }
         }
     }
-    const senderId = user.id
+
+
+    const senderId = user!.id
     const conversationId = `conversation:${[senderId, receiverId].sort().join(":")}`
 
     const messageId = `message:${Date.now()}:${Math.random().toString(36).substring(2, 9)}`
@@ -69,8 +78,9 @@ export async function sendMessageAction({ content, messageType, receiverId }: Se
 }
 
 // fetches the conversation from redis
-export async function getMessageAction(selectedUserId: string, currentUserId: String) {
-    const conversationId = `conversation:${[selectedUserId, currentUserId].sort().join(":")}`
+export async function getMessageAction(selectedUserId: string, currentUserId: string) {
+    const conversationId = `conversation:${[selectedUserId, currentUserId || "demo-user-1"].sort().join(":")}`
+
     const messageIds = await redis.zrange(`${conversationId}:messages`, 0, -1)
     if (messageIds.length === 0) return []
     const pipeline = redis.pipeline()
