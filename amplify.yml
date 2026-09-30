@@ -9,7 +9,9 @@ frontend:
         - npm install --legacy-peer-deps
     build:
       commands:
+        - env | grep -e KINDE -e UPSTASH >> .env.production || true
         - npm run build
+
   artifacts:
     baseDirectory: .next
     files:
