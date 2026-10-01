@@ -109,6 +109,7 @@ const ChatBottomBar = () => {
     const channelName = `${currentUser?.id}__${selectedUser?.id}`.split('__').sort().join('__')
 
     // Connect and join room
+    console.log("Attempting to connect to socket...", process.env.NEXT_PUBLIC_SOCKET_SERVER_URL);
     socket.connect();
     socket.emit('join', channelName);
 
