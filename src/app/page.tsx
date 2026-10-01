@@ -44,19 +44,19 @@ async function getUsers(): Promise<User[]> {
         id: "demo-sarah",
         name: "Sarah Jenkins (Lead Engineer)",
         email: "sarah@techcorp.io",
-        image: "https://avatar.iran.liara.run/public/girl?username=Sarah"
+        image: "https://ui-avatars.com/api/?name=Sarah+Jenkins&background=6366f1&color=fff&size=128"
       },
       {
         id: "demo-alex",
         name: "Alex Rivera (Product Designer)",
         email: "alex@designcraft.co",
-        image: "https://avatar.iran.liara.run/public/boy?username=Alex"
+        image: "https://ui-avatars.com/api/?name=Alex+Rivera&background=ec4899&color=fff&size=128"
       },
       {
         id: "demo-maya",
         name: "Maya Patel (Engineering Manager)",
         email: "maya@cloudscale.net",
-        image: "https://avatar.iran.liara.run/public/girl?username=Maya"
+        image: "https://ui-avatars.com/api/?name=Maya+Patel&background=14b8a6&color=fff&size=128"
       }
     ]
   }

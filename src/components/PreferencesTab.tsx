@@ -14,11 +14,11 @@ const PreferencesTab = () => {
 
     return (
         <div className='flex px-1 gap-2 md:px-2'>
-            <Button variant={"outline"} size={"icon"}>
-                <SunIcon onClick={() => {
+            <Button onClick={() => {
                     soundEnabled && playMouseClick()
                     setTheme("light")
-                }} className="size-[1.2rem] text-muted-foreground" />
+                }} variant={"outline"} size={"icon"}>
+                <SunIcon className="size-[1.2rem] text-muted-foreground" />
             </Button>
             <Button onClick={() => {
                 soundEnabled && playMouseClick()

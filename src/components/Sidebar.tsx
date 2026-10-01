@@ -22,10 +22,10 @@ const Sidebar = ({ isCollapsed, users }: { isCollapsed: boolean, users: User[] }
     const user = kindeUser || {
         given_name: "Nikhilesh",
         family_name: "(Demo)",
-        picture: "https://avatar.iran.liara.run/public/boy?username=Nikhilesh"
+        picture: "https://ui-avatars.com/api/?name=Nikhilesh&background=6366f1&color=fff&size=128"
     }
     if (user?.picture?.includes("gravatar")) {
-        user.picture = `https://avatar.iran.liara.run/public/boy?username=${user?.given_name}`
+        user.picture = `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.given_name || 'User')}&background=6366f1&color=fff&size=128`
     }
 
     return (
@@ -116,7 +116,8 @@ const Sidebar = ({ isCollapsed, users }: { isCollapsed: boolean, users: User[] }
                     }
                     <div className='flex justify-center' onClick={() => {
                         document.cookie = "demo_user=; path=/; max-age=0";
-                        window.location.href = "/auth";
+                        // Redirect through Kinde logout to clear OAuth session, then to auth page
+                        window.location.href = "/api/auth/logout";
                     }}>
                         <LogOutIcon className='cursor-pointer ml-2 hover:text-red-500 transition-colors' size={28} />
                     </div>

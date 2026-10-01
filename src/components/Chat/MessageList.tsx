@@ -26,10 +26,10 @@ const MessageList = () => {
   const currentUser = kindeUser || {
     id: "demo-user-1",
     given_name: "Nikhilesh",
-    picture: "https://avatar.iran.liara.run/public/boy?username=Nikhilesh"
+    picture: "https://ui-avatars.com/api/?name=Nikhilesh&background=6366f1&color=fff&size=128"
   }
   if (currentUser?.picture?.includes("gravatar")) {
-    currentUser.picture = `https://avatar.iran.liara.run/public/boy?username=${currentUser?.given_name}`
+    currentUser.picture = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser?.given_name || 'User')}&background=6366f1&color=fff&size=128`
   }
   const { data: messages, isLoading: isMessagesLoading } = useQuery({
     queryKey: ['messages', selectedUser?.id],

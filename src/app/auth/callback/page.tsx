@@ -20,15 +20,20 @@ const inria = Inria_Serif({
 
 const Page = () => {
     const router = useRouter()
-    const { data } = useQuery({
+    const { data, error } = useQuery({
         queryKey: ['authCheck'],
-        queryFn: async () => await checkAuthStatus()
+        queryFn: async () => await checkAuthStatus(),
+        retry: 2,
     })
     useEffect(() => {
         if (data?.success) {
             router.push('/')
+        } else if (data && !data.success) {
+            router.push('/auth')
+        } else if (error) {
+            router.push('/auth')
         }
-    }, [data, router])
+    }, [data, error, router])
     return (
         <div className='mt-10 w-full flex justify-center'>
             <div className='flex flex-col items-center gap-2'>
