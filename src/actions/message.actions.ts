@@ -64,7 +64,7 @@ export async function sendMessageAction({ content, messageType, receiverId }: Se
     // Broadcast via Node.js WebSocket server
     const broadcastUrl = `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/broadcast`;
 
-    fetch(broadcastUrl, {
+    await fetch(broadcastUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
