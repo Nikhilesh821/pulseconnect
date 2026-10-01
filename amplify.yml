@@ -9,7 +9,7 @@ frontend:
         - npm install --legacy-peer-deps
     build:
       commands:
-        - env | grep -e KINDE -e UPSTASH >> .env.production || true
+        - env | grep -e KINDE -e UPSTASH -e CLOUDINARY -e SOCKET >> .env.production || true
         - npm run build
         - cp .env.production .next/standalone/.env.production || true
         - cp .env.production .next/.env.production || true
