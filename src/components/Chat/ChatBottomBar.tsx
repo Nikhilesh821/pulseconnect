@@ -249,7 +249,7 @@ const ChatBottomBar = () => {
             <DialogTitle className={inria.className}>Video Preview</DialogTitle>
           </DialogHeader>
           <div className='flex justify-center items-center rounded-lg relative h-96 w-full mx-auto'>
-            {videoUrl && <CldVideoPlayer className='rounded-lg' width={150} height={96} src={videoUrl} />}
+            {videoUrl && <video className='rounded-lg max-h-full max-w-full' controls src={videoUrl} />}
           </div>
 
           <DialogFooter>
