@@ -155,9 +155,10 @@ const ChatTopBar = () => {
     // The Signaling Server "Forwards" it to User B.
     // User B tries that path. If it works, the P2P pipe opens!
     peerConnection.current.onicecandidate = (event) => {
-      if (event.candidate && selectedUser?.id) {
+      const targetId = selectedUser?.id || pendingOffer.current?.from
+      if (event.candidate && targetId) {
         socket.emit('signal', {
-          to: selectedUser.id,
+          to: targetId,
           from: currentUser?.id,
           type: 'ice-candidate',
           signal: event.candidate
